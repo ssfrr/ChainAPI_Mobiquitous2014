@@ -35,8 +35,8 @@
 
 \begin{document}
 
-\title{ChainAPI}
-\subtitle{A Pragmatic approach to the Web of Things}
+\title{Hypermedia APIs for Sensor Data}
+\subtitle{A pragmatic approach to the Web of Things}
 
 % You need the command \numberofauthors to handle the 'placement
 % and alignment' of the authors beneath the title.
@@ -109,21 +109,84 @@ a variety of client applications.
 %
 % \terms{Theory}
 %
-% \keywords{ACM proceedings, \LaTeX, text tagging} % NOT required for Proceedings
+\keywords{Semantic Web, RESTful Web Services, Sensors, Internet of Things, Hypermedia} % NOT required for Proceedings
 
 \section{Introduction}
-Here we introduce ChainAPI, and talk about what we're doing.
+
+It is becoming apparent that in addition to a transport layer that enables the
+so-called Internet of Things, it is important to develop an application layer
+to provide wide-spread interoperability and a consistent interface to
+internet-connected devices. While there are many efforts [cite Alljoyn, etc.]
+to develop new standards and protocols, other projects [cite] seek to use
+existing application-level web standards such as HTTP to provide an interface
+that is more familiar to developers, and also that can take advantage of
+tooling and infrastructure already in place for the World Wide Web. Reflecting
+the relationships to existing web standards and also the way in which the World
+Wide Web is built on top of the Internet, these efforts are often dubbed the
+Web of Things.
+
+In previous work~\cite{doppellab}\cite{gestures} we have built frameworks to collect
+and process sensor data from a variety of sources, as well as applications to
+visualize and experience those data. [Expand on how this informed ChainAPI]
+
+We posit that the main impediments to adoption of IoT standards are social
+rather then technological. Often  solutions require developers to take on too much
+simultaneous complexity to get started. Many of the systems coming from a Semantic
+Web history have sophisticated data models to ensure compatibility with existing
+upper ontologies [cite]. Application developers are often unwillinging to adopt
+this additional complexity [why?].
+
+To address these issues we have developed and implemented an API that interoperates
+easily with existing infrastructure, and also allows developers to take advantage
+of semantic relations and formal ontologies without requiring it.
 
 \section{Related Work}
 
-\subsection{Web of Things}
+I'm sure some people have written about this stuff.
 
-\section{Integrating Request/Response and Realtime APIs}
+\section{Bringing Poll and Push\\ Together}
 
 Many existing systems [citation needed] focus on either a RESTful HTTP API in
 which clients make a request and the server sends a response, or are pub/sub
 systems supporting real-time streaming data to be pushed to clients as it is
 available.
+
+\section{Enabling Hierarchy}
+
+Work is under way by multiple groups to adapt the TCP/IP Stack to be more
+suitable for low-power and resource-constrained devices~\cite{iotsurvey}.
+Though this is a reasonable proposition and would provide a suitable transport
+protocol for communication, it leaves open many questions that are important
+for secure and reliable communication over the open internet. Even if the
+devices themselves speak IP (whether using WiFi, 6LoWPAN, etc.) there will
+still likely be a role for a bridge or gateway node that can handle encryption,
+authentication, discovery mechanisms, and other application logic necessary to
+communicate and interoperate with the larger Internet.
+
+One of the benefits of this approach is that we can take advantage of existing
+HTTP Caching and Proxy infrastructure. It is a common pattern in modern web
+development to have application web server processes handling application
+logic, and to place a front-end HTTP server such as Nginx or Apache as a proxy.
+In this configuration, the proxy is responsible for handling SSL, defending
+against DDOS attacks, and in general provides a front line of defense to the
+open internet. The application server processes (e.g. Node.js or Gunicorn) thus
+operate in a safer environment and focus on handling application logic.
+
+expand on how we can use this same model, and perhaps even use some of the
+same infrastructure
+
+\section{Naming "Things"}
+
+One of the central issues in the IoT is simply the issue of identifying objects
+in the system~\cite{iotsurvey}. We propose the use of HTTP URIs as globally
+unique identifiers.  Providers can structure their URIs aritrarily, for
+instance to represent natural hierarchy in the system. Link relations between
+objects not only represent identity, but also where the linked object can be
+found, without needing to first consult any sort of central registry.
+
+Additionally, HTTP has built-in mechanisms to handle renaming, as servers can
+respond with an HTTP Status 301 (Moved Permanently) to notify clients that the
+object can now be found at a new URI.
 
 \section{Using Existing Standards}
 
@@ -144,7 +207,6 @@ and talk a little about ours.
 Our ChainAPI implementation is currently in use as the back-end infrastructure
 for several ongoing projects in research and industry. In general these applications
 have the following structure: [describe system roles, maybe a diagram...]
-
 
 \subsection{Tidmarsh Living Observatory}
 
