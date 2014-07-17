@@ -35,8 +35,8 @@
 
 \begin{document}
 
-\title{Some Catchy Title}
-\subtitle{With a suitably academic subtitle}
+\title{ChainAPI}
+\subtitle{A Pragmatic approach to the Web of Things}
 
 % You need the command \numberofauthors to handle the 'placement
 % and alignment' of the authors beneath the title.
@@ -94,8 +94,12 @@
 \maketitle
 
 \begin{abstract}
-In this paper, we describe a new system called ChainAPI. This abstract should
-describe it.
+In this paper we introduce a pragmatic approach to the Web of Things that is
+inspired equally by the rich body of Semantic Web research and industry web
+services practices. This approach integrates HTTP request/response interactions
+with realtime streaming using HTML5 WebSockets. We will also describe our
+implementation of these concepts in ChainAPI, a sensor data server in use by
+a variety of client applications.
 \end{abstract}
 
 % % A category with the (minimum) three required fields
@@ -110,13 +114,46 @@ describe it.
 \section{Introduction}
 Here we introduce ChainAPI, and talk about what we're doing.
 
-\section{Some Topic}
+\section{Related Work}
 
-And some section
+\subsection{Web of Things}
 
-\subsection{Oooh, a SUB-section}
-In this subsection, we have some info from our first
-reference\cite{Lamport:LaTeX}.
+\section{Integrating Request/Response and Realtime APIs}
+
+Many existing systems [citation needed] focus on either a RESTful HTTP API in
+which clients make a request and the server sends a response, or are pub/sub
+systems supporting real-time streaming data to be pushed to clients as it is
+available.
+
+\section{Using Existing Standards}
+
+Wherever possible we have relied on existing standards and protocols rather
+than reinventing our own. For instance, to support hypermedia in our responses
+we are using the Hypertext Application Language~\cite{json-hal-draft}, which
+provides a standardized data model for hyperlinks that can be rendered in JSON
+or XML (though JSON is the main focus and was implemented by the authors).
+
+\section{Supporting a Relation Ontology}
+
+ChainAPI is inspired by the rich literature and history of the Semantic Web.
+This section needs to talk about how our links can support various ontologies,
+and talk a little about ours.
+
+\section{Usage Examples}
+
+Our ChainAPI implementation is currently in use as the back-end infrastructure
+for several ongoing projects in research and industry. In general these applications
+have the following structure: [describe system roles, maybe a diagram...]
+
+
+\subsection{Tidmarsh Living Observatory}
+
+Talk about what the system does, how it handles data, compare against previous
+implementation of doppellab.
+
+\subsection{Soofa Solar Benches}
+
+Maybe focus on how quickly they got up and running?
 
 \section{Conclusion}
 And here we conclude, with some stirring remarks.
