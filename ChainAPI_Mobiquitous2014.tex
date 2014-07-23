@@ -172,8 +172,31 @@ against DDOS attacks, and in general provides a front line of defense to the
 open internet. The application server processes (e.g. Node.js or Gunicorn) thus
 operate in a safer environment and focus on handling application logic.
 
-expand on how we can use this same model, and perhaps even use some of the
-same infrastructure
+This multi-tiered architecture has been used in Web of Things literature to
+divide direct from indirect integration~\cite{wotsurvey}. In direct
+integration, the devices themselves are capable of serving requests directly
+from clients. In indirect integration there is a gateway or bridge that serves
+the requests, and translates them to a protocol that the (presumably
+lower-powered) nodes can understand. An unexplored middle ground is for end devices
+to function as simple HTTP servers that are proxied behind more complex ones. For
+example, a gateway could handle SSL and authentication, but then forward requests
+to the simpler devices for handling application logic.
+
+\section{Enabling Search}
+
+In the early days of the World Wide Web, sites were primarily accessed directly
+via their URLs, or via links from other known sites. In the earliest days in
+fact, CERN had an alphabatized index of available web
+content~\cite{websearchengines}. As the web grew beyond what could be
+reasonably browsed and bookmarked, the problem of finding information on the
+Web changed. It was no longer enough for the content to be on the web, it also
+had to be discoverable in a sea of other pages. By 1994 search engines started
+to appear to allow users to find the information they wanted. With search
+engines came the advent of crawlers that would index the web and collect the
+metadata into the engine's database. As more sensors and sensor networks are
+added to the Web of Things, similar issues will arise. Our approach can serve
+as a substrate on which a similar ecosystem of crawlers can index the available
+data and metadata.
 
 \section{Naming "Things"}
 
