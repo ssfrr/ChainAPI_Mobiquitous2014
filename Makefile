@@ -6,7 +6,7 @@ PAGECOUNT=$(shell pdfinfo ChainAPI_Mobiquitous2014.pdf | grep Pages: | awk '{pri
 default: $(DOC_NAME).pdf
 
 watch:
-	while true; do make --no-print-directory; make --no-print-directory stats; sleep 1; done
+	while true; do make --no-print-directory; make --no-print-directory stats; sleep 2; done
 
 stats:
 	@echo $(WORDCOUNT) words, $(PAGECOUNT) pages

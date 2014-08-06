@@ -15,7 +15,7 @@
 % is produced).
 % REMEMBER HOWEVER: After having produced the .bbl file,
 % and prior to final submission,
-% you need to 'insert'  your .bbl file into your source .tex file so as to provide
+% you need to 'insert' your .bbl file into your source .tex file so as to provide
 % ONE 'self-contained' source file.
 %
 % Questions regarding SIGS should be sent to
@@ -62,9 +62,9 @@
 \title{Hypermedia APIs for Sensor Data}
 \subtitle{A pragmatic approach to the Web of Things}
 \toappear{Submitted to 11th International Conference on Mobile and Ubiquitous
-    Systems: Computing, Networking and Services (Mobiquitous 2014)\\
-    December 2-5, 2014\\
-    London, Great Britain}
+          Systems: Computing, Networking and Services (Mobiquitous 2014)\\
+          December 2-5, 2014\\
+          London, Great Britain}
 
 % You need the command \numberofauthors to handle the 'placement
 % and alignment' of the authors beneath the title.
@@ -180,7 +180,7 @@ and process sensor data from a variety of sources, as well as applications to
 visualize and experience those data. [Expand on how this informed ChainAPI]
 
 We posit that the main impediments to adoption of IoT standards are social
-rather then technological. Often  solutions require developers to take on too much
+rather then technological. Often solutions require developers to take on too much
 simultaneous complexity to get started. Many of the systems coming from a Semantic
 Web history have sophisticated data models to ensure compatibility with existing
 upper ontologies [cite]. Application developers are often unwillinging to adopt
@@ -194,6 +194,22 @@ of semantic relations and formal ontologies without requiring it.
 
 What are other approaches? Alljoyn? Semantic-web approaches in SPARQL
 databases?
+
+Ontologies far too complex to expose directly to application
+developers~\cite{w3contology}.
+
+Good example of pulling together a bunch of different ontologies and integrating
+with existing standards such as SensorML~\cite{russomanno2005}.
+
+Simple, but not RESTful (hard-coded URLs), Events are via email, SMS, or HTTP
+POST (webooks). Doesn't specify ontology at all~\cite{gupta2010}
+
+Addresses push using MQTT~\cite{collina2012}. Doesn't like WebSockets because
+there’s no standard URI indication once the connection is opened, but if we
+send HAL objects they have a self rel. advocate using VPNs for security.
+
+Guinard et. al give a good introduction to the application of RESTful design
+to the Web of Things~\cite{guinard2010}.
 
 \section{Hypermedia Web Services}
 
@@ -211,8 +227,15 @@ drove the design of the World Wide Web:
     \item Internet-scale
 \end{tightitemize}
 
-The Internet of Things certainly must be extensible and Internet-Scale. This work
-focuses on exploring the benefits of lowering barriers to entry and hypermedia.
+The Internet of Things certainly must be extensible and Internet-Scale. This
+work focuses on exploring the benefits of lowering barriers to entry and
+hypermedia.  While reducing complexity and providing easy entry points for new
+developers are obviously good goals in isolation, there is often a trade-off
+between design complexity and the expressive power and generality of a system.
+However, the World Wide Web gives a compelling model of a system that has
+proven itself to be both accessible (driving wide and rapid adoption) and
+extensible.
+
 
 \section{Bringing Poll and Push\\ Together}
 
@@ -284,7 +307,7 @@ they get updates for all resources below them in the hierarchy.
 \section{Layered Architecture}
 
 Work is under way by multiple groups to adapt the TCP/IP Stack to be more
-suitable for low-power, resource-constrained devices~\cite{iotsurvey}.  Though
+suitable for low-power, resource-constrained devices~\cite{iotsurvey}. Though
 this is a reasonable proposition and would provide a suitable transport
 protocol for communication, it leaves open many questions that are important
 for secure and reliable communication over the open internet. Even if the
@@ -321,7 +344,7 @@ no side effects in the server, and a \texttt{PUT} request should be idempotent
 the request can be safely repeated). Using these standard methods and adhering
 to the defined semantics allows intermediate servers to behave more
 intelligently and route traffic more effeciently. One notable example is the
-caching proxy.  There exist many widely-used proxies such as
+caching proxy. There exist many widely-used proxies such as
 Varnish\footnote{https://www.varnish-cache.org/},
 Nginx\footnote{http://nginx.org/}, and
 Squid\footnote{http://www.squid-cache.org/} that can take advantage of the HTTP
@@ -350,7 +373,7 @@ data and metadata.
 
 One of the central issues in the IoT is simply the issue of uniquely
 identifying objects in the system~\cite{iotsurvey}. We propose the use of HTTP
-URIs as globally unique identifiers.  Providers can structure their URIs
+URIs as globally unique identifiers. Providers can structure their URIs
 aritrarily, for instance to represent natural hierarchy in the system. Link
 relations between objects not only represent identity, but also where the
 linked object can be found, without needing to first consult any sort of
@@ -398,6 +421,7 @@ ChainAPI is released under the MIT license, and source code is available on
 GitHub\footnote{https://github.com/ssfrr/chain-api}.
 
 \subsection{Resources}
+\label{api_resources}
 
 Following hypermedia design practice[cite], ChainAPI provides clients with a
 number of resources and describes relations between them in the form of
@@ -478,6 +502,17 @@ PostgreSQL\footnote{http://www.postgresql.org/} relational database. Nginx acts
 as a reverse-proxy server to dispatch standard HTTP and also WebSocket
 connections to the application servers.
 
+It is currently only possible to create or modify resources through the HTTP
+interface, but in the future clients will be able to use WebSockets to reduce
+latency and overhead. When a client posts new data, for example a sensor
+posting a new temperature measurement, the HTTP server handles persisting the
+data in the database and also sends an event notification over ZMQ to the
+WebSocket server, which in turn notifies any subscribed clients. The URL
+provided to the client in the WebSocket links provides all the information the
+WebSocket server needs to decide what data should be sent to the client. For
+example, in the sensor resource in Listing \ref{sensorjson}, the websocket URL
+is \texttt{ws://example.com/ws/sensor-274}, so when the client connects to the
+WebSocket server, it will send any events tagged \texttt{sensor-274}.
 
 \section{Case Study:\\Tidmarsh Living Observatory}
 
@@ -486,9 +521,9 @@ a sensor deployment at a former cranberry bog in southern Massachusetts that is
 currently undergoing a restoration to a natural wetland. There are currently 15
 sensors nodes deployed, each sensing temperature, humidity, barometric
 pressure, and ambient light. Each node is powered by 3 AA batteries, with an
-expected battery life of approximately 2 years. Approximately 150 additional
-nodes will be installed in the coming months. Figure \ref{tidmarsh_arch} shows
-an overview of the Tidmarsh architecture.
+expected battery life of 2 years, sampling every 20 seconds. Approximately 150
+additional nodes will be installed in the coming months. Figure
+\ref{tidmarsh_arch} shows an overview of the Tidmarsh architecture.
 
 \begin{figure}
     \centering
@@ -507,7 +542,7 @@ using Atmel's Lightweight Mesh protocol over 802.15.4. Nodes not within direct
 communication range of the base station can route messages through
 solar-powered router nodes, which are also collecting data. The base station
 serves as the TCP/IP Gateway, which receives the RF messages and sends them
-over WiFi to  server via ZMQ. The message payloads are left in their binary
+over WiFi to server via ZMQ. The message payloads are left in their binary
 format and they are received by the Binary to JSON translator, which parses the
 binary messages and generates JSON representations of the data. The Binary to
 JSON translator acts as a ZMQ server, and the JSON messages are sent to any
@@ -515,16 +550,88 @@ connected clients.
 
 \subsection{ChainAPI Representation}
 
-Each sensor node is a Device in the ChainAPI ontology.
+To integrate the TidMarsh sensor installation into ChainAPI, we wrote a small
+bridge service that connects via ZMQ to the TidMarsh server and receives JSON
+messages on each sensor measurement. The only URL needed by the service
+is the address of the Tidmarsh Site resource on the ChainAPI server, which is
+passed as an argument on initialization. On initialization the bridge service
+first requests a list of all Devices on the server. Recall from section
+\ref{api_resources} that a Device is a collection of sensors in the same
+enclosure, so in this case each Tidmarsh Node is a device. Within the Tidmarsh
+system each node has a unique 2-byte identifier, which we use as the device's
+name field within ChainAPI. From the device and sensor information that the
+bridge receives from the server, it builds a hash that it can use to look up
+the URL for a given sensor data as it arrives from the Tidmarsh server. It then
+subscribes to the ZMQ feed from the Tidmarsh server. As new data come in, the
+bridge simply looks up the appropriate URL to post the new data to. If data
+arrives from a sensor or device that the bridge does not recognize, the bridge
+creates the necessary resource before beginning to post data. This has the
+benefit that as new sensors come online at Tidmarsh, their data immediately
+begins flowing into ChainAPI.
 
 \subsection{Client Behavior}
 
-We developed a client built on the Unity3D game
+\begin{figure}
+    \centering
+    \includegraphics[width=8.45cm]{tidmarsh_screenshot}
+    \caption{Tidmarsh Unity3D Client}
+    \label{tidmarsh_screenshot}
+\end{figure}
+
+We developed an interactive 3D client built on the Unity3D game
 engine\footnote{http://unity3d.com/} to explore and experience the data from
-the sensor network.
+the sensor network. As with the Tidmarsh bridge, the client begins by
+requesting a summary of the site, which includes all devices and sensors at
+that site.  Similar to the bridge, this client builds a hash to map incoming
+data, but now in the opposite direction. New data that comes in from the
+WebSocket subscription will have a link to the containing sensor, so the client
+needs to quickly map that URL into an in-memory object representing the sensor.
+As the client parses the summary of devices and sensors at the site, it builds
+up such a map and instantiates the objects in the game world. As new data comes
+in, the client looks up the game object in the hash and updates the sensor
+values. In this client the incoming data is visualized and displayed spacially
+on a realistic representation of the real-world topology (see
+Figure~\ref{tidmarsh_screenshot}. The client also incorporates generative music
+that is driven by the incoming sensor data. To maintain portability and
+security, working within the Unity3D environment places substantial constraints
+on library availability. Here the choice to use standard web technologies sped up
+development time considerably. With no tooling or language support beyond
+standard HTTP, WebSocket, and JSON parsing we were able to quickly interface
+with the ChainAPI server and access the data in realtime.
+
+\section{Future Work}
+
+A general pattern has emerged in the clients we've built where they often begin
+with one or more requests for the current state of the resources of interest,
+after which they subscribe to push updates. The gap between the initial state
+query and the push updates presents a potential for lost data. One solution
+would be for the client to subscribe to the updates before requesting the
+initial state, thus pushing responsibility for merging out-of-order data to the
+client.  Because this pattern is so common a better solution is desirable.
+Because the initial state information and the WebSocket link for updates are
+often in the same response, we should be able to include timestamp information
+in the WebSocket link itself, which the WebSocket server can use on a new
+client connection to send any messages that otherwise would have been lost.
+Because the clients treat link URLs as opaque we can add this functionality to
+the server at a later time without changes to the client.
+
+We currently have a very simple ontology driven by our applications. Gotta fix
+that.
+
+Much of this work is predicated on the assumption that we should strive to
+simplify the client/server interfaces in Web of Things to drive adoption. To
+validate this assumption we need to build in our qualitative experience with
+more formal user studies.
+
+Building on existing web technologies gives us access to a wealth of proven
+security tools and paradigms, but we need to work on implementing more
+fine-grained access control.
 
 \section{Conclusion}
-And here we conclude, with some stirring remarks.
+We can talk about barriers to entry, tie back to Fielding. Also not reinventing
+the wheel. Not inventing new specs, using technologies that already have wide
+adoption. The pieces are all there, stop making new pieces, bring them together
+in a way that makes sense.
 
 %ACKNOWLEDGMENTS are optional
 \section{Acknowledgments}
@@ -535,7 +642,7 @@ project.
 % initial runs of your .tex file to
 % produce the bibliography for the citations in your paper.
 \bibliographystyle{abbrv}
-\bibliography{refs}  % sigproc.bib is the name of the Bibliography in this case
+\bibliography{refs} % sigproc.bib is the name of the Bibliography in this case
 %
 % ACM needs 'a single self-contained file'! For final submission paste the contents
 % of refs.bbl here.
