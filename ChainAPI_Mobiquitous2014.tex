@@ -34,6 +34,7 @@
 \usepackage{minted}
 \usepackage{caption}
 \usepackage{tikz}
+\input{vc}
 
 \usemintedstyle{friendly}
 \newminted{json}{linenos=false, stepnumber=1, frame=lines, framesep=1em}
@@ -64,7 +65,8 @@
 \toappear{Submitted to 11th International Conference on Mobile and Ubiquitous
           Systems: Computing, Networking and Services (Mobiquitous 2014)\\
           December 2-5, 2014\\
-          London, Great Britain}
+          London, Great Britain\\
+          Build \githash}
 
 % You need the command \numberofauthors to handle the 'placement
 % and alignment' of the authors beneath the title.
@@ -136,20 +138,23 @@
 \maketitle
 
 \begin{abstract}
-As infrastructure for the Internet of Things becomes more commonplace, an
-application layer is needed to enable interoperability and create a \emph{Web}
-of Things. Here we introduce a pragmatic approach to the Web of Things that is
-inspired equally by the rich body of Semantic Web research and industry web
-services practice. This approach integrates HTTP request/response interactions
-with realtime streaming using HTML5 WebSockets. We will discuss how our
-approach enables client/server interactions that are both evolvable by the
-server and discoverable by the client. Rather than attempt to define yet
+As our world becomes more instrumented, sensors are appearing in our homes,
+cars, and on our bodies~\cite{dublonsciam}. These sensors are connected to a
+diverse set of systems and protocols driven by cost, power, bandwidth, and
+more. Despite this heterogeneous infrastructure, we need to be able to build
+applications that use that data, and the most value comes from integrating
+these disparate sources together. Infrastructure for the Internet of Things is
+becoming more commonplace, but we need an application layer to enable
+interoperability and create a \emph{Web} of Things. Here we introduce a
+pragmatic approach to the Web of Things, integrating HTTP request/response
+interactions with realtime streaming using HTML5 WebSockets.  We will discuss
+how our approach enables client/server interactions that are both evolvable by
+the server and discoverable by the client. Rather than attempt to define yet
 another competing standard, we incorporate a collection of complementary
 standards already in use. We will also describe our implementation of these
 concepts in ChainAPI, a sensor data server in use by a variety of projects
-within our research group. We have developed several end-to-end applications
-with this infrastructure, and we will describe one of them as a successful case
-study.
+within our research group.  We will describe one of several end-to-end
+applications as a successful case study.
 \end{abstract}
 
 % % A category with the (minimum) three required fields
@@ -187,13 +192,18 @@ simultaneous complexity to get started. Many of the systems coming from a Semant
 Web history have sophisticated data models to ensure compatibility with existing
 upper ontologies~\cite{w3contology}\cite{broring2011}\cite{eid2007}, but
 application developers are often unwilling to adopt this accompanying
-complexity.
+complexity. Providing simple, familiar interfaces to sensor data lowers
+the barriers to entry to building sophisticated applications without deep
+knowledge of the underlying sensor architecture, enabling smarter, more
+efficient IoT systems~\cite{aldrich2013}.
 
-To address these issues we have developed and implemented ChainAPI, a sensor
-data server that interoperates easily with existing infrastructure, and also
-allows developers to take advantage of semantic relations and formal ontologies
-as they become useful, rather than forcing the developer to confront them all
-at once.
+To address these issues we have developed ChainAPI, a sensor data server that
+interoperates easily with existing infrastructure, and also allows developers
+to take advantage of semantic relations and formal ontologies as they become
+useful, rather than forcing the developer to confront them all at once. We are
+working with developers outside our research group to get insight and feedback
+into the barriers to adoption and also which features are necessary to cover
+real-world use cases.
 
 \section{Hypermedia Web Services}
 
@@ -228,7 +238,7 @@ than reinventing our own. For instance, to support hypermedia in our responses
 we are using the Hypertext Application Language~\cite{json-hal-draft}, which
 provides a standardized data model for hyperlinks. HAL can be rendered in JSON
 with a mediatype of \texttt{application/hal+json} or XML
-\texttt{application/hal+xml}. In this case we have chosen to focus on the JSON
+(\texttt{application/hal+xml}). In this case we have chosen to focus on the JSON
 variant. We use the IANA-standardized link relations \texttt{edit-form} and
 \texttt{create-form} to indicate link relations that can be used for editing
 and creating resources, and JSON-Schema~\cite{json-schema-draft} for
@@ -283,19 +293,20 @@ representing the expected format.
 
 \section{Link Relations}
 
-Hal+json provides a mechanism for the server to present affordances to the
-client in the form of links. For requesting those resources the client simply
-issues an HTTP \texttt{GET} request to the given URI. These affordances could
-represent actions that the client has available to them, or simply related
-resources. For example, a temperature sensor resource might have a link
-relation to a thermostat setpoint, representing a target value. Non-numeric
-sensor data such as RFID can link to the detected item or person. Linked
-resources could also be virtual sensors such as an anomaly detection algorithm
-that uses raw sensor data as input. Listing \ref{sensorjson} has a typical
-resource representation. In hal+json links are contained in a reserved
-\texttt{\_links} property of your json payload. The \texttt{\_links} property
-is a dictionary, keyed on link relation names (commonly referred to as
-``rels'').
+Hyperlinks provide a mechanism for the server to present
+affordances~\cite{gibson} to the client. These affordances could represent
+actions that the client has available to them, or simply related resources. For
+example, a temperature sensor resource might have a link relation to a
+thermostat setpoint, representing a target value. Non-numeric sensor data such
+as RFID can link to the detected item or person. Linked resources could also be
+virtual sensors such as an anomaly detection algorithm that uses raw sensor
+data as input. Actions such as editing the current resource or sending a
+command can also be represented as links, and the presence or absence of those
+links is a way for the server to communicate to the client what they are
+allowed to do. Listing \ref{sensorjson} has a typical resource representation.
+In hal+json links are contained in a reserved \texttt{\_links} property of your
+json payload. The \texttt{\_links} property is a dictionary, keyed on link
+relation names (commonly referred to as ``rels'').
 
 The rel itself actually serve as a link(URI) to the human-readable
 documentation that describes what that relationship actually means. This rel

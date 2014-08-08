@@ -1,7 +1,8 @@
 DOC_NAME=ChainAPI_Mobiquitous2014
+DRAFT_NAME=$(DOC_NAME)_draft
 FIGURES=tidmarsh_arch.tex
-WORDCOUNT=$(shell pdftotext ChainAPI_Mobiquitous2014.pdf - | wc | awk '{print $$2}')
-PAGECOUNT=$(shell pdfinfo ChainAPI_Mobiquitous2014.pdf | grep Pages: | awk '{print $$2}')
+WORDCOUNT=$(shell pdftotext $(DOC_NAME).pdf - | wc | awk '{print $$2}')
+PAGECOUNT=$(shell pdfinfo $(DOC_NAME).pdf | grep Pages: | awk '{print $$2}')
 
 default: $(DOC_NAME).pdf
 
@@ -11,7 +12,15 @@ watch:
 stats:
 	@echo $(WORDCOUNT) words, $(PAGECOUNT) pages
 
+publish: $(DRAFT_NAME).pdf
+
+$(DRAFT_NAME).pdf: $(DOC_NAME).pdf
+	cp $(DOC_NAME).pdf $(DOC_NAME)_draft.pdf
+
 %.pdf: %.tex Makefile refs.bib $(FIGURES)
+	# stick git version info into vc.tex
+	./vc.sh > vc.tex
+
 	pdflatex -shell-escape $<
 	bibtex $*
 	pdflatex -shell-escape $<
