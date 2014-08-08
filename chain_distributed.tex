@@ -1,0 +1,96 @@
+%\usetikzlibrary{positioning}
+%\usetikzlibrary{graphdrawing}
+%\usetikzlibrary{graphs}
+%\usegdlibrary{force}
+
+\begin{tikzpicture}[
+	sensornode/.style={
+		shape=rectangle,
+		draw,
+		minimum size=10mm,
+		rounded corners,
+		text width=30,
+		align=center,
+	},
+	gateway/.style={
+		shape=rectangle,
+		draw,
+		rounded corners,
+		minimum width=25mm,
+%		minimum height=10mm,
+	},
+	server/.style={
+		shape=rectangle,
+		draw,
+		minimum width=25mm,
+		text width=22mm,
+		align=center,
+	},
+	client/.style={
+		shape=circle,
+		draw
+	},
+	wsn node/.style={
+		shape=circle,
+		draw
+	},
+	>=stealth,
+	font=\footnotesize,
+	node distance=3mm,
+]
+%draw the bounding rectangle
+%\draw (0,0) rectangle (8.45, 8);
+
+\node (n1) [wsn node] at (0.6,0.6) {};
+\node (n2) [wsn node] at (1.4,0.5)  {};
+\node (n3) [wsn node] at (2.0,0.4)  {};
+\node (n4) [wsn node] at (0.7,1.2)  {};
+\node (n5) [wsn node] at (1.5,1.4)  {};
+\node (n6) [wsn node] at (2.2,1.0)  {};
+
+\draw[dashed] (n1) -- (n2);
+\draw[dashed] (n1) -- (n5);
+\draw[dashed] (n1) -- (n4);
+\draw[dashed] (n5) -- (n3);
+\draw[dashed] (n2) -- (n6);
+\draw[dashed] (n4) -- (n6);
+
+\node (wsn gateway) [gateway, above=of n5] {WSN Gateway};
+\draw[dashed] (n4) -- (wsn gateway);
+\draw[dashed] (n5) -- (wsn gateway);
+\draw[dashed] (n6) -- (wsn gateway);
+
+\node (httpn1) [sensornode, right=of n6] {HTTP Node};
+
+\node (httpn2) [sensornode, right=of wsn gateway, xshift=15mm] {HTTP Node};
+\node (httpn3) [sensornode, below right=of httpn2, xshift=-5mm] {HTTP Node};
+\node (httpn4) [sensornode, above right=of httpn3, xshift=-5mm] {HTTP Node};
+
+\node (wsn auth proxy) [gateway, above=of wsn gateway, xshift=13mm] {Authorization Proxy};
+\draw (wsn gateway) -- (wsn auth proxy);
+\draw (httpn1) -- (wsn auth proxy);
+
+\node (nginx1) [server, above=of wsn auth proxy] {Reverse Proxy (Cache)};
+\draw (wsn auth proxy) -- (nginx1);
+
+\node (nginx2) [server, above=of httpn3, yshift=14mm] {Reverse Proxy (Cache)};
+\draw (httpn2) -- (nginx2);
+\draw (httpn3) -- (nginx2);
+\draw (httpn4) -- (nginx2);
+
+\node (client1) [client, above left=of nginx1, yshift=8mm, xshift=2mm] {Client};
+\node (client2) [client, right=of client1, yshift=2mm] {Client};
+\node (client3) [client, right=of client2, yshift=-2mm] {Client};
+\node (client4) [client, right=of client3, yshift=2mm] {Client};
+\node (client5) [client, right=of client4, yshift=-2mm] {Client};
+
+\draw (client1) -- (nginx1);
+\draw (client2) -- (nginx1);
+\draw (client3) -- (nginx1);
+\draw (client3) -- (nginx2);
+\draw (client4) -- (nginx2);
+\draw (client4) -- (nginx1);
+\draw (client5) -- (nginx2);
+
+
+\end{tikzpicture}

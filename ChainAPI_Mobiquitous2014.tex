@@ -35,6 +35,8 @@
 \usepackage{minted}
 \usepackage{caption}
 \usepackage{tikz}
+\usetikzlibrary{positioning}
+% pull in git commit information
 \input{vc}
 
 \usemintedstyle{friendly}
@@ -365,6 +367,14 @@ check to see if the resource is embedded before requesting the it over the
 network.
 
 \section{Layered Architecture}
+
+\begin{figure}
+    \centering
+    \input{chain_distributed.tex}
+    \caption{Layered Architecture}
+    \label{chain_distributed}
+\end{figure}
+
 
 Work is under way by multiple groups to adapt the TCP/IP Stack to be more
 suitable for low-power, resource-constrained devices~\cite{iotsurvey}. Though
