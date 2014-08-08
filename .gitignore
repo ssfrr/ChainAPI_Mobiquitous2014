@@ -2,3 +2,6 @@ ChainAPI_Mobiquitous2014.bbl
 ChainAPI_Mobiquitous2014.blg
 ChainAPI_Mobiquitous2014.pdf
 *-converted-to.pdf
+*.out
+*.log
+vc.tex
