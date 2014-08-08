@@ -375,14 +375,6 @@ network.
 
 \section{Layered Architecture}
 
-\begin{figure}
-    \centering
-    \input{chain_distributed.tex}
-    \caption{Layered Architecture}
-    \label{chain_distributed}
-\end{figure}
-
-
 Work is under way by multiple groups to adapt the TCP/IP Stack to be more
 suitable for low-power, resource-constrained devices~\cite{iotsurvey}. Though
 this is a reasonable proposition and would provide a suitable transport
@@ -436,6 +428,13 @@ load on the application server, which might otherwise have needed to access a
 database or do other expensive calculations to re-build the response. In the
 case of sensors the caching proxy could be a power-saving measure, as the proxy
 could handle client requests without communicating with the sensor.
+
+\begin{figure}
+    \centering
+    \input{chain_distributed.tex}
+    \caption{Layered Architecture}
+    \label{chain_distributed}
+\end{figure}
 
 \section{Bringing Poll and Push\\ Together}
 
