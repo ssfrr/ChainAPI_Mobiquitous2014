@@ -17,7 +17,8 @@ publish: $(DRAFT_NAME).pdf
 $(DRAFT_NAME).pdf: $(DOC_NAME).pdf
 	cp $(DOC_NAME).pdf $(DOC_NAME)_draft.pdf
 
-%.pdf: %.tex Makefile refs.bib $(FIGURES)
+# include .git/logs/HEAD so that make will rebuild after a commit, which updates the git hash
+%.pdf: %.tex Makefile refs.bib $(FIGURES) .git/logs/HEAD
 	# stick git version info into vc.tex
 	./vc.sh > vc.tex
 
