@@ -1,0 +1,74 @@
+%\usetikzlibrary{positioning}
+%\usetikzlibrary{graphdrawing}
+%\usetikzlibrary{graphs}
+%\usegdlibrary{force}
+
+\begin{tikzpicture}[
+	gateway/.style={
+		shape=rectangle,
+		draw,
+		rounded corners,
+		minimum width=25mm,
+%		minimum height=10mm,
+	},
+	server/.style={
+		shape=rectangle,
+		draw,
+		minimum width=25mm,
+		text width=22mm,
+		align=center,
+	},
+	resource/.style={
+		shape=rectangle,
+		rounded corners,
+		draw,
+		align=center,
+	},
+	wsn node/.style={
+		shape=circle,
+		draw
+	},
+	>=stealth,
+	->,
+	font=\scriptsize,
+	node distance=10mm,
+]
+%draw the bounding rectangle
+%\draw (0,0) rectangle (8.45, 8);
+
+%\node (living room) [resource, sibling angle=45] at (0.5*8.45, 4) {Living Room}
+%	child {node [resource] {Kitchen}}
+%	child {node [resource] {Thermostat 2}}
+%	child {node [resource] {Smoke Alarm}};
+
+\node (living room) [resource] at (5.1, 4) {Living Room}; % root
+\node (kitchen) [resource, left=of living room, xshift=-5mm] {Kitchen};
+\node (oven therm) [resource, above=of kitchen, text width=17mm, xshift=-5mm] {Oven\\Thermometer};
+\node (stat1) [resource, below=of kitchen] {Thermostat 1};
+\node (setpoint1) [resource, below left=of stat1, xshift=15mm] {Setpoint};
+\node (temp1) [resource, below=of stat1, xshift=15mm] {Temperature};
+\node (stat2) [resource, above=of living room] {Thermostat 2};
+\node (setpoint2) [resource, above=of stat2] {Setpoint};
+\node (temp2) [resource, above right=of stat2, xshift=-7mm] {Temperature};
+\node (alice) [resource, right=of living room, xshift=2mm] {Alice};
+\node (bob) [resource, below=of living room] {Bob};
+\node (pedometer) [resource, below right=of bob] {Pedometer};
+
+\draw (living room) to[out=170, in=10] node [above] {adjacent} (kitchen);
+\draw (kitchen) to[out=-10, in=-170] node [below] {adjacent} (living room);
+\draw (oven therm) -- node [left] {in room} (kitchen);
+\draw (stat1) -- node [left] {in room} (kitchen);
+\draw (setpoint1) -- node [left] {in device} (stat1);
+\draw (temp1) -- node [right] {in device} (stat1);
+
+\draw (stat2) -- node [left] {in room} (living room);
+\draw (setpoint2) -- node [left] {in device} (stat2);
+\draw (temp2) -- node [right, yshift=-1mm] {in device} (stat2);
+
+
+\draw (bob) -- node [right] {in room} (living room);
+\draw (alice) -- node [below] {in room} (living room);
+\draw (pedometer) -- node [right] {belongs to} (bob);
+
+
+\end{tikzpicture}
