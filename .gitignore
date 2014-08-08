@@ -5,3 +5,4 @@ ChainAPI_Mobiquitous2014.pdf
 *.out
 *.log
 vc.tex
+*.aux
