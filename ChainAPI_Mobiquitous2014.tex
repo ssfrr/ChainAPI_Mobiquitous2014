@@ -173,13 +173,14 @@ It is becoming apparent that in addition to a transport layer that enables the
 Internet of Things, it is important to develop an application layer to provide
 wide-spread interoperability and a consistent interface to Internet-connected
 devices. While there are many efforts to develop new standards and
-protocols such as Alljoyn and MQTT, other projects~\cite{guinard2010} seek to
+protocols such as Alljoyn\footnote{https://www.alljoyn.org/} and
+MQTT\footnote{http://mqtt.org/}, other projects~\cite{guinard2010} seek to
 use existing application-level web standards such as HTTP to provide an
 interface that is more familiar to developers, and also that can take advantage
 of tooling and infrastructure already in place for the World Wide Web.
-Reflecting the relationships to existing web standards and also the way in
-which the World Wide Web is built on top of the Internet, these efforts are
-often dubbed the Web of Things.
+These efforts are often dubbed the Web of Things, which reflects the
+relationships to existing web standards and also the way in which the World
+Wide Web is built on top of the Internet.
 
 In previous work~\cite{doppellab}\cite{gestures} we have built frameworks to collect
 and process sensor data from a variety of sources, as well as applications to
@@ -187,7 +188,7 @@ visualize and experience those data. Through these prototypes we identified
 several common use cases and access patterns, as well as shared functionality
 that would be better served by a common infrastructure.
 
-We posit that the main impediments to adoption of IoT standards are social
+Many of the main impediments to adoption of IoT standards are social
 rather then technological. Often solutions require developers to take on too much
 simultaneous complexity to get started. Many of the systems coming from a Semantic
 Web history have sophisticated data models to ensure compatibility with existing
@@ -222,7 +223,7 @@ drove the design of the World Wide Web:
     \item Internet-scale
 \end{tightitemize}
 
-The Internet of Things certainly must be extensible and Internet-Scale. This
+The Internet of Things certainly must be extensible and Internet-scale. This
 work focuses on exploring the benefits of lowering barriers to entry and
 hypermedia. While reducing complexity and providing easy entry points for new
 developers are obviously good goals in isolation, there is often a trade-off
@@ -237,13 +238,18 @@ application of RESTful design to the Web of Things~\cite{guinard2010}.
 Wherever possible we have relied on existing standards and protocols rather
 than reinventing our own. For instance, to support hypermedia in our responses
 we are using the Hypertext Application Language~\cite{json-hal-draft}, which
-provides a standardized data model for hyperlinks. HAL can be rendered in JSON
-with a mediatype of \texttt{application/hal+json} or XML
-(\texttt{application/hal+xml}). In this case we have chosen to focus on the JSON
-variant. We use the IANA-standardized link relations \texttt{edit-form} and
-\texttt{create-form} to indicate link relations that can be used for editing
-and creating resources, and JSON-Schema~\cite{json-schema-draft} for
-representing the expected format.
+provides a standardized data model for hyperlinks. HAL has a large number of
+client libraries and was recently adopted by Amazon for their AppStream API.
+HAL can be rendered in JSON with a mediatype of \texttt{application/hal+json}
+or XML (\texttt{application/hal+xml}). In this case we have chosen to focus on
+the JSON variant. We use the IANA-standardized link relations
+\texttt{edit-form} and \texttt{create-form} to indicate link relations that can
+be used for editing and creating resources, and
+JSON-Schema~\cite{json-schema-draft} for representing the expected format. For
+our realtime API we are using WebSockets, which is a simple and low-overhead
+protocol with wide and growing adoption. Where possible we use existing
+vocabularies, such as the QUDT\footnote{http://www.qudt.org/} ontology for unit
+names.
 
 \begin{listing}
 \begin{jsoncode}
@@ -321,7 +327,7 @@ vocabulary of relation types by referencing rels from a shared repository.
 Using URIs as relation names has the benefit of providing a stable and unique
 identifier for relation names, but using a full URI as a json dictionary key is
 cumbersome and duplicates lots of data in a typically payload. To alleviate this
-issue hal+json supports Compact URIs or CURIEs, which are similar in
+issue hal+json supports Compact URIs or CURIEs~\cite{curies}, which are similar in
 functionality to an XML namespace. In the context of hal+json CURIEs are simply
 a URI template that can be used for each rel that references it. For example,
 in Listing \ref{sensorjson} the \texttt{ch} CURIE has a templated URI of
@@ -337,7 +343,7 @@ relation will generate a response with the expected schema, and a \texttt{POST}
 will edit or create the resource, depending on the relation.
 
 You can also see in Listing \ref{sensorjson} that there is both an
-\texttt{editForm} and \texttt{edit-form} relation. Notice that the
+\mbox{\texttt{editForm}} and \texttt{edit-form} relation. Notice that the
 \texttt{editForm} link has a \texttt{deprecation} property that is a URI.  This
 is how relations can be gracefully deprecated or changed. In this case we
 renamed \texttt{editForm} to \texttt{edit-form} to match the IANA-registered
@@ -355,7 +361,7 @@ are likely to be requested, they can be included in an \texttt{\_embedded}
 property that is similar in structure to the \texttt{\_links} property, except
 with full HAL resources included instead of links. When a client application
 accesses a related resource, most HAL client libraries are configured to first
-check for the \texttt{\_embedded} before requesting the resource over the
+check to see if the resource is embedded before requesting the it over the
 network.
 
 \section{Layered Architecture}
@@ -367,7 +373,7 @@ protocol for communication, it leaves open many questions that are important
 for secure and reliable communication over the open Internet. Even if the
 devices themselves speak IP (whether using WiFi, 6LoWPAN, etc.) there will
 still likely be a role for a bridge or gateway node that can handle encryption,
-authentication, discovery mechanisms, and other application logic necessary to
+authentication, discovery mechanisms, and other functionality necessary to
 communicate and interoperate with the larger Internet.
 
 One of the benefits of the layered gateway approach is that we can take
@@ -385,15 +391,16 @@ to divide direct from indirect integration~\cite{wotsurvey}. In direct
 integration, the devices themselves are capable of serving requests directly
 from clients. In indirect integration there is a gateway or bridge that serves
 the requests, and translates them to a protocol that the (presumably
-lower-powered) nodes can understand. An unexplored middle ground is for end
-devices to function as simple HTTP servers that are proxied behind more complex
-ones. For example, a gateway could handle SSL and authentication, but then
-forward requests to the simpler devices for handling application logic. This
-layered architecture is one of the six constraints that define the REST
-architecture~\cite{fielding}, and allows the simpler devices to sit behind a
-protected firewall in a safe zone. By building our simpler servers on HTTP we
-can use industry-standard and field-tested front-end proxy servers instead of
-special purpose IoT gateways.
+lower-powered) nodes can understand. The assumption is often that the main
+function of the gateway is to translate between HTTP and a lower-power protocol
+such as ZigBee, 6LoWPan, etc. An unexplored middle ground is for end devices to
+function as simple HTTP servers that are proxied behind more heavy-duty ones.
+For example, a gateway could handle SSL and authentication, but then forward
+requests to the simpler devices for handling application logic. This layered
+architecture  and allows the simpler devices to sit behind a protected firewall
+in a safe zone. By building our simpler servers on HTTP we can use
+industry-standard and field-tested front-end proxy servers instead of special
+purpose IoT gateways.
 
 The standard HTTP methods (\texttt{GET}, \texttt{POST}, etc.) have well-defined
 semantics~\cite{httpmethods}. For instance, a \texttt{GET} request should have
@@ -407,8 +414,8 @@ Varnish\footnote{https://www.varnish-cache.org/},
 Nginx\footnote{http://nginx.org/}, and
 Squid\footnote{http://www.squid-cache.org/} that can take advantage of the HTTP
 method along with standardized cache lifetime HTTP headers to intercept the
-request and serve a cached response from a previous request, reducing the load
-on the application server, which might otherwise have needed to access a
+request and serve a cached response from a previous request. This reduces the
+load on the application server, which might otherwise have needed to access a
 database or do other expensive calculations to re-build the response. In the
 case of sensors the caching proxy could be a power-saving measure, as the proxy
 could handle client requests without communicating with the sensor.
@@ -416,13 +423,12 @@ could handle client requests without communicating with the sensor.
 \section{Bringing Poll and Push\\ Together}
 
 In ChainAPI we integrated request/response interactions with realtime push
-updates. While many interactions map well to a Hypermedia HTTP API in which
-clients make a request and the server sends a response, it is very common in
-sensor data systems to want new sensor data as soon as it is available.
-Standard HTTP is not well-suited to this task, the server cannot initiate
-communication with the client. While many workarounds such as long-polling are
-in common use, HTML5 WebSockets were introduced to eliminate the need for such
-workarounds.
+updates. While many interactions map well to an HTTP API in which clients make
+a request and the server sends a response, it is very common in sensor data
+systems to want new sensor data as soon as it is available.  Standard HTTP is
+not well-suited to this task, as the server cannot initiate communication with
+the client. While many workarounds such as long-polling are in common use,
+HTML5 WebSockets were introduced to provide a more standard mechanism.
 
 Clients begin interacting with ChainAPI via the HTTP API, submitting HTTP
 requests for resources and receiving responses with representations of those
@@ -435,6 +441,15 @@ available it will be streamed to all subscribed clients. Because there is a
 natural hierarchy in our data (many devices in a Site, usually several sensors
 in each Device), when clients subscribe to a resource they get updates for all
 resources below them in the hierarchy.
+
+This is a good example of the benefits of hypermedia and linking, as the client
+does not need to be instructed ahead of time how to find a given realtime
+stream, it can just follow the link at run-time. This frees the client
+developer from needing to figure it out from documentation, and also allows the
+server developer to make changes as needed without breaking clients. For
+instance, the streams could be served from a totally separate server, or the
+HTTP server might want to pass additional context information to the streaming
+server through parameters in the URI query string.
 
 Another option with some traction is MQTT~\cite{collina2012}, which is
 optimized for resource-constrained devices and includes useful features such as
@@ -459,9 +474,9 @@ content~\cite{websearchengines}. As the web grew beyond what could be
 reasonably browsed and bookmarked, the problem of finding information on the
 Web changed. It was no longer enough for the content to be on the web, it also
 had to be discoverable in a sea of other pages. By 1994 search engines started
-to appear to allow users to find the information they wanted. With search
-engines came the advent of crawlers that would index the web and collect the
-metadata into the engine's database.
+to appear to allow users to find the information they
+wanted~\cite{websearchengines}. With search engines came the advent of crawlers
+that would index the web and collect the metadata into the engine's database.
 
 As more sensors and sensor networks are added to the Web of Things, similar
 issues will arise. Our approach can serve as a substrate on which a similar
@@ -500,7 +515,7 @@ systems that it knows are nearby a particular latitude and longitude.
 
 Implementing a fully Semantic Web-compatible system is not a priority of
 ChainAPI, but we recognize the benefits of shared ontologies to support
-cross-system compatibility. Hal+json and ChainAPI can use a shared vocabulary
+cross-system compatibility. ChainAPI-based services can use a shared vocabulary
 of link relations to enable these types of use cases. In Listing
 \ref{sensorjson}, notice the \texttt{ch:dataHistory} link relation, which
 expands (via the CURIE) to the URI \texttt{/rels/dataHistory}. A client that
@@ -540,18 +555,17 @@ a shared type that can be used as a context for interpreting its attributes.
 \section{API Description}
 
 To validate our design choices and experiment in a real-world environment, we
-have implemented a server-side web service called ChainAPI. We have also
+have implemented a server-side web service, the ChainAPI server. We have also
 created several client applications to use the service in different ways.
-
 ChainAPI is released under the MIT license, and source code is available on
 GitHub\footnote{https://github.com/ssfrr/chain-api}.
 
 \subsection{Resources}
 \label{api_resources}
 
-Following hypermedia design practice[cite], ChainAPI provides clients with a
-number of resources and describes relations between them in the form of
-hyperlinks. The resource types we currently provide are:
+as a hypermedia web service, ChainAPI provides clients with a number of
+resources and describes relations between them in the form of hyperlinks.  The
+resource types we currently provide are:
 
 \begin{description}
     \item[Site] A collection of Devices typically located within the same
@@ -604,10 +618,11 @@ changes.
 
 Our current implementation of the ChainAPI server is written in Python. We use
 the Django\footnote{https://www.djangoproject.com/} web framework for the
-request/response API and database interactions and a separate process built on
-the Flask\footnote{http://flask.pocoo.org/} web framework for managing the
-WebSocket connections. The two processes communicate with each other through a
-ZMQ socket for event notification. We are currently using the
+request/response API and database interactions. For managing the WebSocket
+connections, we use a separate process built on the
+Flask\footnote{http://flask.pocoo.org/} web framework. The two processes
+communicate with each other through a ZMQ\footnote{http://zeromq.org/} socket
+for event notification. We are currently using the
 PostgreSQL\footnote{http://www.postgresql.org/} relational database. Nginx acts
 as a reverse-proxy server to dispatch standard HTTP and also WebSocket
 connections to the application servers.
@@ -652,7 +667,7 @@ additional nodes will be installed in the coming months. Figure
 One of the goals of ChainAPI is to accommodate a wide variety of heterogeneous
 underlying sensor systems and provide easy integration. In the case of Tidmarsh
 there was an existing sensor installation that exposed the sensor data via
-ZMQ\footnote{http://zeromq.org/}.The sensors communicate with a base station
+ZMQ.The sensors communicate with a base station
 using Atmel's Lightweight Mesh protocol over 802.15.4. Nodes not within direct
 communication range of the base station can route messages through
 solar-powered router nodes, which are also collecting data. The base station
@@ -670,8 +685,8 @@ bridge service that connects via ZMQ to the Tidmarsh server and receives JSON
 messages on each sensor measurement. The only URI needed by the service
 is the address of the Tidmarsh Site resource on the ChainAPI server, which is
 passed as an argument on initialization. On initialization the bridge service
-first requests a list of all Devices on the server. Recall from section
-\ref{api_resources} that a Device is a collection of sensors in the same
+first requests a list of all devices on the server. Recall from section
+\ref{api_resources} that a device is a collection of sensors in the same
 enclosure, so in this case each Tidmarsh Node is a device. Within the Tidmarsh
 system each node has a unique 2-byte identifier, which we use as the device's
 name field within ChainAPI. From the device and sensor information that the
@@ -707,12 +722,14 @@ in, the client looks up the game object in the hash and updates the sensor
 values. In this client the incoming data is visualized and displayed spatially
 on a realistic representation of the real-world topology (see
 Figure~\ref{tidmarsh_screenshot}). The client also incorporates generative
-music that is driven by the incoming sensor data. To maintain portability and
-security, working within the Unity3D environment places substantial constraints
-on library availability. Here the choice to use standard web technologies sped
-up development time considerably. With no tooling or language support beyond
-standard HTTP, WebSocket, and JSON parsing we were able to quickly interface
-with the ChainAPI server and access the data in realtime.
+music that is driven by the incoming sensor data.
+
+To maintain portability and security, working within the Unity3D environment
+places substantial constraints on library availability. Here the choice to use
+standard web technologies sped up development time considerably. With no
+tooling or language support beyond standard HTTP, WebSocket, and JSON parsing
+we were able to quickly interface with the ChainAPI server and access the data
+in realtime.
 
 \section{Future Work}
 
@@ -737,7 +754,7 @@ of relations, preferably based on existing ontologies and standards.
 
 Much of this work is predicated on the assumption that we should strive to
 simplify the client/server interfaces in Web of Things to drive adoption. To
-validate this assumption we need to build in our qualitative experience with
+validate this assumption we need to build on our qualitative experience with
 formal user studies.
 
 We have not yet explored the best security models to apply to this
