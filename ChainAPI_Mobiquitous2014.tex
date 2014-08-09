@@ -312,17 +312,23 @@ names.
 Hyperlinks provide a mechanism for the server to present
 affordances~\cite{gibson} to the client. These affordances could represent
 actions that the client has available to them, or simply related resources. For
-example, a temperature sensor resource might have a link relation to a
-thermostat setpoint, representing a target value. Non-numeric sensor data such
-as RFID can link to the detected item or person. Linked resources could also be
-virtual sensors such as an anomaly detection algorithm that uses raw sensor
-data as input. Actions such as editing the current resource or sending a
-command can also be represented as links, and the presence or absence of those
-links is a way for the server to communicate to the client what they are
-allowed to do. Listing \ref{sensorjson} has a typical resource representation.
-In hal+json links are contained in a reserved \texttt{\_links} property of your
-json payload. The \texttt{\_links} property is a dictionary, keyed on link
-relation names (commonly referred to as ``rels'').
+example, Figure \ref{hyperlinks} shows a set of resources and relations in a
+home. We see that Alice and Bob are both in the Living Room, where there is
+also a thermostat. There are two tracked values in the thermostat: the setpoint
+and the temperature, and we can see that the setpoint can be considered a
+target value for the temperature. In a hypermedia system each of these entities
+can be represented by a resource that has a unique URI, and each of these
+relations (adjacent, in device, etc.) can be represented by a hyperlink. This
+is also similar to the subject-verb-object triple concept from the Semantic
+Web~\cite{bernerslee2001semantic}. Linked resources could also be virtual
+sensors such as an anomaly detection algorithm that uses raw sensor data as
+input. Actions such as editing the current resource or sending a command can
+also be represented as links, and the presence or absence of those links is a
+way for the server to communicate to the client what they are allowed to do.
+Listing \ref{sensorjson} has a typical resource representation.  In hal+json
+links are contained in a reserved \texttt{\_links} property of your json
+payload. The \texttt{\_links} property is a dictionary, keyed on link relation
+names (commonly referred to as ``rels'').
 
 The rel itself actually serve as a link(URI) to the human-readable
 documentation that describes what that relationship actually means. This rel
@@ -394,6 +400,27 @@ responsible for handling SSL encryption, defending against DDOS attacks, and in
 general provides a front line of defense to the open Internet. The application
 server processes (e.g.  Node.js or Gunicorn) thus operate in a safer
 environment and focus on handling application logic.
+
+Figure \ref{chain_distributed} shows a possible configuration of clients,
+proxies, and sensors. Here there are a combination of traditional low-power
+sensors in a Wireless Sensor Network (WSN), as well as a set of sensors that
+can serve HTTP requests, but are assumed to be relatively resource-constrained
+i.e.  they are not equipped to handle large amounts of traffic, and don't
+support advanced features such as SSL. When one of the clients requests data
+(e.g. the most recent temperature reading) from one of the sensor nodes, it
+goes through a caching proxy. If the proxy does not have a recent response, it
+will pass the request to the sensor. The sensor will send the response with the
+data, along with a standard HTTP Cache-Control header. The sensor will most
+likely give a cache lifetime on the order of its sampling period. Subsequent
+requests from other clients for the same data will be handled directly by the
+Caching proxy, saving both power and bandwidth of the sensor. This is
+particularly valuable when there are many clients requesting the same data.
+
+The trade-off for this extra efficiency is additional latency between the time
+a physical property is measured and the time that it gets to the client.
+Because our system provides both a request/response and a streaming interface,
+we assume that clients seeking the lowest latency data will simply connect to
+the realtime stream.
 
 The presence or absence of a gateway has been used in Web of Things literature
 to divide direct from indirect integration~\cite{wotsurvey}. In direct

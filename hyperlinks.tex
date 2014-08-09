@@ -46,9 +46,9 @@
 \node (oven therm) [resource, above=of kitchen, text width=17mm, xshift=-5mm] {Oven\\Thermometer};
 \node (stat1) [resource, below=of kitchen] {Thermostat 1};
 \node (setpoint1) [resource, below left=of stat1, xshift=15mm] {Setpoint};
-\node (temp1) [resource, below=of stat1, xshift=15mm] {Temperature};
+\node (temp1) [resource, below=of stat1, xshift=20mm] {Temperature};
 \node (stat2) [resource, above=of living room] {Thermostat 2};
-\node (setpoint2) [resource, above=of stat2] {Setpoint};
+\node (setpoint2) [resource, above=of stat2, xshift=-10mm] {Setpoint};
 \node (temp2) [resource, above right=of stat2, xshift=-7mm] {Temperature};
 \node (alice) [resource, right=of living room, xshift=2mm] {Alice};
 \node (bob) [resource, below=of living room] {Bob};
@@ -59,11 +59,13 @@
 \draw (oven therm) -- node [left] {in room} (kitchen);
 \draw (stat1) -- node [left] {in room} (kitchen);
 \draw (setpoint1) -- node [left] {in device} (stat1);
-\draw (temp1) -- node [right] {in device} (stat1);
+\draw (temp1) -- node [right, xshift=1mm] {in device} (stat1);
+\draw (temp1) -- node [above] {target} (setpoint1);
 
 \draw (stat2) -- node [left] {in room} (living room);
 \draw (setpoint2) -- node [left] {in device} (stat2);
 \draw (temp2) -- node [right, yshift=-1mm] {in device} (stat2);
+\draw (temp2) -- node [above] {target} (setpoint2);
 
 
 \draw (bob) -- node [right] {in room} (living room);
