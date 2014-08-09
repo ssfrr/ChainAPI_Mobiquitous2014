@@ -189,7 +189,7 @@ We can see some of the potential for web-accessible sensor data in the growth
 of services like Xively\footnote{https://xively.com/}. However, we believe that
 the Web of Things should, like the Internet itself, be open and decentralized.
 Enabling interoperability between millions of data providers and consumers
-means focusing on the interactions between those actors, and not building
+means focusing on the interactions between those actors, not building
 centrally-controlled services.
 
 In previous work~\cite{doppellab}\cite{gestures} we have built frameworks to collect
@@ -198,24 +198,27 @@ visualize and experience those data. Through these prototypes we identified
 several common use cases and access patterns, as well as shared functionality
 that would be better served by a common infrastructure.
 
-Many of the main impediments to adoption of IoT standards are social
-rather then technological. Often solutions require developers to take on too much
-simultaneous complexity to get started. Many of the systems coming from a Semantic
-Web history have sophisticated data models to ensure compatibility with existing
-upper ontologies~\cite{w3contology}\cite{broring2011}\cite{eid2007}, but
-application developers are often unwilling to adopt this accompanying
-complexity. Providing simple, familiar interfaces to sensor data lowers
-the barriers to entry to building sophisticated applications without deep
-knowledge of the underlying sensor architecture, enabling smarter, more
-efficient IoT systems~\cite{aldrich2013}.
+Many of the main impediments to adoption of IoT standards are social rather
+then technological. Often solutions require developers to take on too much
+simultaneous complexity to get started. The Semantic Web gives possible
+directions to encourage interoperability, but many of those systems are very
+complex, with highly-sophisticated data models. While ensuring compatibility
+with existing upper
+ontologies~\cite{w3contology}\cite{broring2011}\cite{eid2007}, improves
+interoperability, application developers are often unwilling to adopt this
+accompanying complexity. Providing simple, familiar interfaces to sensor data
+lowers the barriers to entry, allowing developers to build sophisticated
+applications without deep knowledge of the underlying sensor architecture,
+enabling smarter, more efficient IoT systems~\cite{aldrich2013}.
 
-To address these issues we have developed ChainAPI, a sensor data server that
-interoperates easily with existing infrastructure, and also allows developers
-to take advantage of semantic relations and formal ontologies as they become
-useful, rather than forcing the developer to confront them all at once. We are
-working with developers outside our research group to get insight and feedback
-into the barriers to adoption and also which features are necessary to cover
-real-world use cases.
+To address these issues we have developed ChainAPI, a set of web service design
+principles for the Web of Things. ChainAPI services interoperate easily with
+existing infrastructure, and also allow developers to take advantage of
+semantic relations and formal ontologies as they become useful, rather than
+forcing the developer to confront them all at once. We are working with
+developers outside our research group to get insight and feedback into the
+barriers to adoption and also which features are necessary to cover real-world
+use cases.
 
 \section{Hypermedia Web Services}
 
@@ -260,6 +263,85 @@ our realtime API we are using WebSockets, which is a simple and low-overhead
 protocol with wide and growing adoption. Where possible we use existing
 vocabularies, such as the QUDT\footnote{http://www.qudt.org/} ontology for unit
 names.
+
+\section{Link Relations}
+
+\begin{figure}
+    \centering
+    \input{hyperlinks.tex}
+    \caption{Linked Resources}
+    \label{hyperlinks}
+\end{figure}
+
+Hyperlinks provide a mechanism for the server to present
+affordances~\cite{gibson} to the client. These affordances could represent
+actions that the client has available to them, or simply related resources. For
+example, Figure \ref{hyperlinks} shows a set of resources and relations in a
+home. We see that Alice and Bob are both in the Living Room, where there is
+also a thermostat. There are two tracked values in the thermostat: the setpoint
+and the temperature, and we can see that the setpoint can be considered a
+target value for the temperature. In a hypermedia system each of these entities
+can be represented by a resource with a unique URI, and each of these
+relations (adjacent, in device, etc.) can be represented by a hyperlink. This
+is also similar to the subject-verb-object triple concept from the Semantic
+Web~\cite{bernerslee2001semantic}. Linked resources could also be virtual
+sensors such as an anomaly detection algorithm that uses raw sensor data as
+input. Actions such as editing the current resource or sending a command can
+also be represented as links, and the presence or absence of those links is a
+way for the server to communicate to the client what they are allowed to do.
+Listing \ref{sensorjson} has a typical resource representation.  In hal+json
+links are contained in a reserved \texttt{\_links} property of the JSON
+payload. The \texttt{\_links} property is a dictionary, keyed on link relation
+names (commonly referred to as ``rels'').
+
+The rel itself actually serve as a link to the human-readable documentation
+that describes what that relationship actually means. This rel URI should also
+be used by clients as a unique, persistent identifier. This gives flexibility
+to server implementers as they can add new relation types, or even new versions
+of existing relation types, to existing resources without breaking older
+clients. As long as the new rels have unique URIs, old clients will simply
+ignore them. It also provides a mechanism for creating a shared vocabulary of
+relation types by referencing rels from a shared repository.
+
+Using URIs as relation names has the benefit of providing a stable and unique
+identifier for relation names, but using a full URI as a JSON dictionary key is
+cumbersome and duplicates lots of data in a typically payload. To alleviate this
+issue hal+json supports Compact URIs or CURIEs~\cite{curies}, which are similar in
+functionality to an XML namespace. In the context of hal+json CURIEs are simply
+a URI template that can be used for each rel that references it. For example,
+in Listing \ref{sensorjson} the \texttt{ch} CURIE has a templated URI of
+\texttt{/rels/\{rel\}}, so the rel \texttt{ch:device} becomes
+\texttt{/rels/device}. This substitution is known as CURIE Expansion.
+
+Actions such as posting new sensor data or adding a new sensor require the
+client to send data to the server. The client can send data to the server via
+\texttt{POST} requests with data encoded in the body of the request with JSON.
+The server can provide the client with the expected format of the data using
+JSON-Schema~\cite{json-schema-draft}. A \texttt{GET} request to the given
+relation will generate a response with the expected schema, and a \texttt{POST}
+will edit or create the resource, depending on the relation.
+
+You can also see in Listing \ref{sensorjson} that there is both an
+\mbox{\texttt{editForm}} and \texttt{edit-form} relation. Notice that the
+\texttt{editForm} link has a \texttt{deprecation} property that is a URI.  This
+is how relations can be gracefully deprecated or changed. In this case we
+renamed \texttt{editForm} to \texttt{edit-form} to match the IANA-registered
+relation name. Older clients with the old relation name will continue to
+function normally, and most HAL libraries are configured to log a warning if a
+deprecated link relation is used. The deprecation URI can be viewed for
+information about the deprecation. Developers creating new clients can clearly
+see which relations are deprecated and avoid using them. HAL allows server
+developers to decide on a deprecation lifetime policy appropriate for their
+application.
+
+To save on communication overhead, HAL also supports embedded resources as a
+pre-caching strategy~\cite{json-hal-draft}. If there are related resources that
+are likely to be requested, they can be included in an \texttt{\_embedded}
+property that is similar in structure to the \texttt{\_links} property, except
+with full HAL resources included instead of links. When a client application
+accesses a related resource, most HAL client libraries are configured to first
+check to see if the resource is embedded before requesting the it over the
+network.
 
 \begin{listing}
 \begin{jsoncode}
@@ -308,84 +390,6 @@ names.
 \label{sensorjson}
 \end{listing}
 
-\section{Link Relations}
-
-\begin{figure}
-    \centering
-    \input{hyperlinks.tex}
-    \caption{Linked Resources}
-    \label{hyperlinks_distributed}
-\end{figure}
-
-Hyperlinks provide a mechanism for the server to present
-affordances~\cite{gibson} to the client. These affordances could represent
-actions that the client has available to them, or simply related resources. For
-example, Figure \ref{hyperlinks} shows a set of resources and relations in a
-home. We see that Alice and Bob are both in the Living Room, where there is
-also a thermostat. There are two tracked values in the thermostat: the setpoint
-and the temperature, and we can see that the setpoint can be considered a
-target value for the temperature. In a hypermedia system each of these entities
-can be represented by a resource that has a unique URI, and each of these
-relations (adjacent, in device, etc.) can be represented by a hyperlink. This
-is also similar to the subject-verb-object triple concept from the Semantic
-Web~\cite{bernerslee2001semantic}. Linked resources could also be virtual
-sensors such as an anomaly detection algorithm that uses raw sensor data as
-input. Actions such as editing the current resource or sending a command can
-also be represented as links, and the presence or absence of those links is a
-way for the server to communicate to the client what they are allowed to do.
-Listing \ref{sensorjson} has a typical resource representation.  In hal+json
-links are contained in a reserved \texttt{\_links} property of your json
-payload. The \texttt{\_links} property is a dictionary, keyed on link relation
-names (commonly referred to as ``rels'').
-
-The rel itself actually serve as a link(URI) to the human-readable
-documentation that describes what that relationship actually means. This rel
-URI should also be used by clients as a unique, persistent identifier. This
-gives flexibility to server implementers as they can add new relation types, or
-even new versions of existing relation types, to existing resources without
-breaking older clients. As long as the new rels have unique URIs, old clients
-will simply ignore them. It also provides a mechanism for creating a shared
-vocabulary of relation types by referencing rels from a shared repository.
-
-Using URIs as relation names has the benefit of providing a stable and unique
-identifier for relation names, but using a full URI as a json dictionary key is
-cumbersome and duplicates lots of data in a typically payload. To alleviate this
-issue hal+json supports Compact URIs or CURIEs~\cite{curies}, which are similar in
-functionality to an XML namespace. In the context of hal+json CURIEs are simply
-a URI template that can be used for each rel that references it. For example,
-in Listing \ref{sensorjson} the \texttt{ch} CURIE has a templated URI of
-\texttt{/rels/\{rel\}}, so the rel \texttt{ch:device} becomes
-\texttt{/rels/device}. This substitution is known as CURIE Expansion.
-
-Actions such as posting new sensor data or adding a new sensor require the
-client to send data to the server. The client can send data to the server via
-\texttt{POST} requests with data encoded in the body of the request with JSON.
-The server can provide the client with the expected format of the data using
-JSON-Schema~\cite{json-schema-draft}. A \texttt{GET} request to the given
-relation will generate a response with the expected schema, and a \texttt{POST}
-will edit or create the resource, depending on the relation.
-
-You can also see in Listing \ref{sensorjson} that there is both an
-\mbox{\texttt{editForm}} and \texttt{edit-form} relation. Notice that the
-\texttt{editForm} link has a \texttt{deprecation} property that is a URI.  This
-is how relations can be gracefully deprecated or changed. In this case we
-renamed \texttt{editForm} to \texttt{edit-form} to match the IANA-registered
-relation name. Older clients with the old relation name will continue to
-function normally, and most HAL libraries are configured to log a warning if a
-deprecated link relation is used. The deprecation URI can be viewed for
-information about the deprecation. Developers creating new clients can clearly
-see which relations are deprecated and avoid using them. HAL allows server
-developers to decide on a deprecation lifetime policy appropriate for their
-application.
-
-To save on communication overhead, HAL also supports embedded resources as a
-pre-caching strategy~\cite{json-hal-draft}. If there are related resources that
-are likely to be requested, they can be included in an \texttt{\_embedded}
-property that is similar in structure to the \texttt{\_links} property, except
-with full HAL resources included instead of links. When a client application
-accesses a related resource, most HAL client libraries are configured to first
-check to see if the resource is embedded before requesting the it over the
-network.
 
 \section{Layered Architecture}
 
@@ -515,6 +519,8 @@ stream. Clients that support the new stream type will be able to take advantage
 of it when the rel is available, and older clients will simply ignore the new
 capability.
 
+\pagebreak
+
 \section{Enabling Search}
 \label{search}
 
@@ -603,12 +609,12 @@ access information about the resource formats themselves. The IANA defines the
 \texttt{profile} relation name that can be used to link individual resources to
 a shared type that can be used as a context for interpreting its attributes.
 
-\section{API Description}
+\section{Implementation}
 
 To validate our design choices and experiment in a real-world environment, we
 have implemented a server-side web service, the ChainAPI server. We have also
-created several client applications to use the service in different ways.
-ChainAPI is released under the MIT license, and source code is available on
+created several client applications to use the service in different ways.  The
+software is released under the MIT license, and source code is available on
 GitHub\footnote{https://github.com/ssfrr/chain-api}.
 
 \subsection{Resources}
@@ -627,10 +633,6 @@ resource types we currently provide are:
     \item[SensorData] Raw data captured by the sensor.
 \end{description}
 
-Any resource can have a \texttt{geoLocation} property which contains its
-latitude, longitude, and optionally elevation. Resources without a
-\texttt{geoLocation} property inherit that of their parent.
-
 \subsection{HTML Interface}
 
 \begin{figure}
@@ -641,13 +643,14 @@ latitude, longitude, and optionally elevation. Resources without a
 \end{figure}
 
 To assist developers building applications on top of ChainAPI, we have
-developed a human-facing interface with HTML, CSS, and Javascript that can be
-viewed through a standard web browser, as seen in Figure \ref{chain_explorer}.
-Through this interface developers can familiarize themselves with the ChainAPI
-interface before they start their client application, or to evaluate ChainAPI
-for their application. For each request, we display the raw JSON of the
-response on the right side. On the left we display a more user-friendly and
-interactive rendering of the raw data.
+developed a human-facing interface\footnote{http://chain-api.media.mit.edu/}
+with HTML, CSS, and Javascript that can be viewed through a standard web
+browser, as seen in Figure \ref{chain_explorer}.  Through this interface
+developers can familiarize themselves with the ChainAPI interface before they
+start their client application, or to evaluate ChainAPI for their use case.
+For each request, we display the raw JSON of the response on the right side. On
+the left we display a more user-friendly and interactive rendering of the raw
+data.
 
 Our HTML interface has the following capabilities
 
@@ -665,7 +668,7 @@ libraries. As new features and capabilities are added to the server, they
 automatically become available in the client interface with no client-side code
 changes.
 
-\section{Implementation}
+\subsection{Software Architecture}
 
 Our current implementation of the ChainAPI server is written in Python. We use
 the Django\footnote{https://www.djangoproject.com/} web framework for the
@@ -681,14 +684,18 @@ connections to the application servers.
 It is currently only possible to create or modify resources through the HTTP
 interface, but in the future clients will be able to use WebSockets to reduce
 latency and overhead. When a client posts new data, for example a sensor
-posting a new temperature measurement, the HTTP server handles persisting the
-data in the database and also sends an event notification over ZMQ to the
-WebSocket server, which in turn notifies any subscribed clients. The URI
-provided to the client in the WebSocket links provides all the information the
-WebSocket server needs to decide what data should be sent to the client. For
-example, in the sensor resource in Listing \ref{sensorjson}, the WebSocket URI
-is \texttt{ws://example.com/ws/sensor-274}, so when the client connects to the
-WebSocket server, it will send any events tagged \texttt{sensor-274}.
+posting a new temperature measurement, the HTTP server stores the data in the
+database and also sends an event notification over ZMQ to the WebSocket server,
+which in turn notifies any subscribed clients. The URI provided to the client
+in the WebSocket links provides all the information the WebSocket server needs
+to decide what data should be sent to the client. For example, in the sensor
+resource in Listing \ref{sensorjson}, the WebSocket URI is
+\texttt{ws://example.com/ws/sensor-274}, so when the client connects to the
+WebSocket server, it will send any events tagged \texttt{sensor-274}. This
+tagging mechanism is an implementation detail, but it demonstrates that when
+the clients treat link URIs as opaque, they can be used to pass data between
+server components without requiring the state to be maintained in the server,
+which is a core component of RESTful design.
 
 While are certainly a long way from Internet-scale, we have a substantially
 larger installation then most comparable research systems. As of August 7, 2014
@@ -814,18 +821,17 @@ of proven security tools and paradigms, but we need to work on implementing
 more fine-grained access control while maintaining the scalability advantages
 such as caching. In addition to access control, there are myriad privacy
 concerns, as well as questions of tracking data provenance through these
-layered, multi-tiered systems~\cite[balazinska2007]. There have been great
-strides in these areas~\cite[de2014openpds] but there are still many open
+layered, multi-tiered systems~\cite{balazinska2007}. There have been great
+strides in these areas~\cite{de2014openpds} but there are still many open
 research questions, as well as opportunities to integrate with existing
 systems.
 
-There are many issues surrounding efficient handling of the collected data that
-we have not yet addressed. Efficient querying at large time scales will require
-working with the data at multiple resolutions. Downsampling the raw data brings
-up many questions that require further research including effective ways to
-handle missing data. Sampling and interpolation questions extend into space as
-well, and our work provides a framework for virtual sensors~\cite{sarkar2014no}
-to be created and linked together with the raw data.
+Efficiently querying sensor data at large time scales will require working with
+the data at multiple resolutions. Downsampling the raw data brings up many
+questions that require further research including effective ways to handle
+missing data. Sampling and interpolation questions extend into space as well,
+and our work provides a framework for virtual sensors~\cite{sarkar2014no} to be
+created and linked together with the raw data.
 
 As discussed in Section \ref{search}, The web provides a successful model to
 handle massive decentralized growth in the form of search engines. A collection
