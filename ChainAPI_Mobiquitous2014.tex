@@ -146,8 +146,9 @@ cars, and on our bodies~\cite{dublonsciam}. These sensors are connected to a
 diverse set of systems and protocols driven by cost, power, bandwidth, and
 more. Despite this heterogeneous infrastructure, we need to be able to build
 applications that use that data, and the most value comes from integrating
-these disparate sources together. Infrastructure for the Internet of Things is
-becoming more commonplace, but we need an application layer to enable
+these disparate sources together. Infrastructure for the Internet of Things
+(including not just consumer products but sensors and actuators of all kinds)
+is becoming more commonplace, but we need an application layer to enable
 interoperability and create a \emph{Web} of Things. Here we introduce a
 pragmatic approach to the Web of Things, integrating HTTP request/response
 interactions with realtime streaming using HTML5 WebSockets.  We will discuss
@@ -183,6 +184,13 @@ of tooling and infrastructure already in place for the World Wide Web.
 These efforts are often dubbed the Web of Things, which reflects the
 relationships to existing web standards and also the way in which the World
 Wide Web is built on top of the Internet.
+
+We can see some of the potential for web-accessible sensor data in the growth
+of services like Xively\footnote{https://xively.com/}. However, we believe that
+the Web of Things should, like the Internet itself, be open and decentralized.
+Enabling interoperability between millions of data providers and consumers
+means focusing on the interactions between those actors, and not building
+centrally-controlled services.
 
 In previous work~\cite{doppellab}\cite{gestures} we have built frameworks to collect
 and process sensor data from a variety of sources, as well as applications to
@@ -804,13 +812,20 @@ We have not yet explored the best security models to apply to this
 architecture. Building on existing web technologies gives us access to a wealth
 of proven security tools and paradigms, but we need to work on implementing
 more fine-grained access control while maintaining the scalability advantages
-such as caching.
+such as caching. In addition to access control, there are myriad privacy
+concerns, as well as questions of tracking data provenance through these
+layered, multi-tiered systems~\cite[balazinska2007]. There have been great
+strides in these areas~\cite[de2014openpds] but there are still many open
+research questions, as well as opportunities to integrate with existing
+systems.
 
-There are many issues surrounding efficient handling of time-series data that
+There are many issues surrounding efficient handling of the collected data that
 we have not yet addressed. Efficient querying at large time scales will require
 working with the data at multiple resolutions. Downsampling the raw data brings
 up many questions that require further research including effective ways to
-handle missing data.
+handle missing data. Sampling and interpolation questions extend into space as
+well, and our work provides a framework for virtual sensors~\cite{sarkar2014no}
+to be created and linked together with the raw data.
 
 As discussed in Section \ref{search}, The web provides a successful model to
 handle massive decentralized growth in the form of search engines. A collection
