@@ -1,0 +1,52 @@
+% load the library when editing in QTikZ, comment out for inclusion in the paper
+%\usetikzlibrary{positioning}
+\usetikzlibrary{shapes.geometric}
+
+\begin{tikzpicture}[
+	nginx/.style={
+		shape=rectangle,
+		draw,
+		rounded corners,
+		minimum width=50mm,
+		minimum height=10mm,
+		fill=white,
+	},
+	appserver/.style={
+		shape=rectangle,
+		draw,
+		rounded corners,
+		minimum width=15mm,
+		minimum height=10mm,
+		text width=15mm,
+		align=center,
+	},
+	db/.style={
+		shape=cylinder,
+        shape border rotate=90,
+		aspect=0.25,
+		draw
+	},
+	>=stealth,
+	->,
+	thick,
+	font=\footnotesize,
+	node distance=7mm,
+]
+% draw the bounding rectangle
+%\draw (0,0) rectangle (8.45, 5);
+
+\draw [dashed, >=, opacity=0.4] (0.5, 1) node[above right, opacity=1] {Local} node[below right, opacity=1] {External} -- (7.95, 1);
+
+\node (nginx) [nginx]  at (4.75, 1) {NGINX};
+\node (django) [appserver, above=of nginx, xshift=-10mm, yshift=10mm] {Django Server};
+\node (flask) [appserver, above=of nginx, xshift=20mm, yshift=10mm] {Flask Server};
+\node [db, left of=django, xshift=-15mm] (db) {Postgres};
+
+\draw (nginx) -- node[left, text width=14mm] {HTTP Requests} (django);
+\draw (nginx) -- node[right] {Websockets} (flask);
+\draw (django) -- node[above] {ZMQ} (flask);
+\draw (django) -- node[above] {} (db);
+
+
+
+\end{tikzpicture}
