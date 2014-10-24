@@ -202,23 +202,21 @@ Many of the main impediments to adoption of IoT standards are social rather
 then technological. Often solutions require developers to take on too much
 simultaneous complexity to get started. The Semantic Web gives possible
 directions to encourage interoperability, but many of those systems are very
-complex, with highly-sophisticated data models. While ensuring compatibility
-with existing upper
-ontologies~\cite{w3contology}\cite{broring2011}\cite{eid2007}, improves
-interoperability, application developers are often unwilling to adopt this
-accompanying complexity. Providing simple, familiar interfaces to sensor data
-lowers the barriers to entry, allowing developers to build sophisticated
-applications without deep knowledge of the underlying sensor architecture,
-enabling smarter, more efficient IoT systems~\cite{aldrich2013}.
+complex, with highly-sophisticated data models. Ensuring compatibility with
+existing upper ontologies~\cite{w3contology}\cite{broring2011}\cite{eid2007}
+improves interoperability, but application developers are often unwilling to
+adopt the accompanying complexity. Providing simple, familiar interfaces to
+sensor data lowers the barriers to entry, allowing developers to build
+sophisticated applications without deep knowledge of the underlying sensor
+architecture, enabling smarter, more efficient IoT systems~\cite{aldrich2013}.
 
 To address these issues we have developed ChainAPI, a set of web service design
-principles for the Web of Things. ChainAPI services interoperate easily with
-existing infrastructure, and also allow developers to take advantage of
-semantic relations and formal ontologies as they become useful, rather than
-forcing the developer to confront them all at once. We are working with
-developers outside our research group to get insight and feedback into the
-barriers to adoption and also which features are necessary to cover real-world
-use cases.
+principles for the Web of Things. ChainAPI services interoperate with existing
+infrastructure, and also allow developers to take advantage of semantic
+relations and formal ontologies as they become useful, rather than forcing the
+developer to confront them all at once. We are working with developers outside
+our research group to get insight and feedback into the barriers to adoption
+and also which features are necessary to cover real-world use cases.
 
 \section{Hypermedia Web Services}
 
@@ -241,10 +239,46 @@ work focuses on exploring the benefits of lowering barriers to entry and
 hypermedia. While reducing complexity and providing easy entry points for new
 developers are obviously good goals in isolation, there is often a trade-off
 between design complexity and the expressive power and generality of a system.
-However, the World Wide Web gives a compelling model of a system that has
+The World Wide Web gives a compelling model of a system that has
 proved itself to be both accessible (driving wide and rapid adoption) and
 extensible. Guinard, Trifa, and Wilde give a good introduction to the
 application of RESTful design to the Web of Things~\cite{guinard2010}.
+
+\section{Related Work}
+
+\begin{itemize}
+    \item OpenIoT
+    \item AMON
+    \item SensorML
+    \item IoTDB.org
+    \item Microsoft Research Lab of Things
+    \item data.sparkfun.com
+    \item Sensorpedia
+    \item DataONE
+    \item Spitfire
+    \item OGC Sensor Web Enablement (SWE)
+    \item Semantic Sensor Net Ontology (from W3C)
+    \item Octoblu / SkyNet
+    \item AllJoyn
+    \item CoAP
+    \item MQTT
+    \item XMPP
+    \item UPnP+
+\end{itemize}
+
+\section{Design Principles}
+
+\begin{itemize}
+    \item Assume a plurality of low-level device protocols and abstract them
+        from clients
+    \item Support a layered architecture built on HTTP
+    \item Use hyperlinks to present resource relations and client affordances
+    \item Support interoperability via shared vocabularies identified with URIs
+    \item Developers should be able to build clients without tooling or
+        libraries, using only familiar standards (HTTP, JSON, and WebSockets)
+    \item Support semantic relationships without requiring full Semantic Web
+        buy-in from developers
+\end{itemize}
 
 \section{Using Existing Standards}
 
@@ -263,6 +297,94 @@ our realtime API we are using WebSockets, which is a simple and low-overhead
 protocol with wide and growing adoption. Where possible we use existing
 vocabularies, such as the QUDT\footnote{http://www.qudt.org/} ontology for unit
 names.
+
+\section{Layered Architecture}
+
+Work is under way by multiple groups to adapt the TCP/IP Stack to be more
+suitable for low-power, resource-constrained devices~\cite{iotsurvey}. Though
+this is a reasonable proposition and would provide a suitable transport
+protocol for communication, it leaves open many questions that are important
+for secure and reliable communication over the open Internet. Even if the
+devices themselves speak IP (whether using WiFi, 6LoWPAN, etc.) there will
+still likely be a role for a bridge or gateway node that can handle encryption,
+authentication, discovery mechanisms, and other functionality necessary to
+communicate and interoperate with the larger Internet.
+
+One of the benefits of the layered gateway approach is that we can take
+advantage of existing HTTP Caching and Proxy infrastructure. It is a common
+pattern in modern web development to have application web server processes
+handling application logic, and to place a front-end HTTP server such as Nginx
+or Apache as a reverse proxy or gateway. In this configuration, the proxy is
+responsible for handling SSL encryption, defending against DDOS attacks, and in
+general provides a front line of defense to the open Internet. The application
+server processes (e.g.  Node.js or Gunicorn) thus operate in a safer
+environment and focus on handling application logic. This architecture maps
+directly to IoT applications, where lightweight devices can serve HTTP or
+function as gateways to Wireless Sensor Networks (WSNs) from behind
+heavier-duty proxies.
+
+Figure \ref{chain_distributed} shows a possible configuration of clients,
+proxies, and sensors. Here there are a combination of traditional low-power
+sensors in a WSN, as well as a set of sensors that
+can serve HTTP requests, but are assumed to be relatively resource-constrained
+i.e.  they are not equipped to handle large amounts of traffic, and don't
+support advanced features such as SSL. When one of the clients requests data
+(e.g. the most recent temperature reading) from one of the sensor nodes, it
+goes through a caching proxy. If the proxy does not have a recent response, it
+will pass the request to the sensor. The sensor will send the response with the
+data, along with a standard HTTP Cache-Control header. The sensor would likely
+set the cache lifetime to persist until its next scheduled measurement.
+Subsequent requests from other clients for the same data will be handled
+directly by the Caching proxy, saving both power and bandwidth of the sensor.
+This is particularly valuable when there are many clients requesting the same
+data.
+
+The trade-off for this extra efficiency is additional latency between the time
+a physical property is measured and the time that it gets to the client.
+Because our system provides both a request/response and a streaming interface,
+we assume that clients seeking the lowest latency data will simply connect to
+the realtime stream.
+
+The presence or absence of a gateway has been used in Web of Things literature
+to divide direct from indirect integration~\cite{wotsurvey}. In direct
+integration, the devices themselves are capable of serving requests directly
+from clients. In indirect integration there is a gateway or bridge that serves
+the requests, and translates them to a protocol that the (presumably
+lower-powered) nodes can understand. The assumption is often that the main
+function of the gateway is to translate between HTTP and a lower-power protocol
+such as ZigBee, 6LoWPan, etc. An unexplored middle ground is for end devices to
+function as simple HTTP servers that are proxied behind more heavy-duty ones.
+For example, a gateway could handle SSL and authentication, but then forward
+requests to the simpler devices for handling application logic. This layered
+architecture  and allows the simpler devices to sit behind a protected firewall
+in a safe zone. By building our simpler servers on HTTP we can use
+industry-standard and field-tested front-end proxy servers instead of special
+purpose IoT gateways.
+
+The standard HTTP methods (\texttt{GET}, \texttt{POST}, etc.) have well-defined
+semantics~\cite{httpmethods}. For instance, a \texttt{GET} request should have
+no side effects in the server, and a \texttt{PUT} request should be idempotent
+(making the request more than once has the same effect as making it once and
+the request can be safely repeated). Using these standard methods and adhering
+to the defined semantics allows intermediate servers to behave more
+intelligently and route traffic more efficiently. One notable example is the
+caching proxy. There exist many widely-used proxies such as
+Varnish\footnote{https://www.varnish-cache.org/},
+Nginx\footnote{http://nginx.org/}, and
+Squid\footnote{http://www.squid-cache.org/} that can take advantage of the HTTP
+method along with standardized cache lifetime HTTP headers to intercept the
+request and serve a cached response from a previous request. This reduces the
+load on the application server, which might otherwise have needed to access a
+database or do other expensive calculations to re-build the response. In the
+case of sensors the caching proxy could be a power-saving measure, as the proxy
+could handle client requests without communicating with the sensor.
+
+\begin{figure}
+    \centering
+    \input{chain_distributed.tex}
+    \caption{Layered Architecture}
+    \label{chain_distributed}
+\end{figure}
 
 \section{Link Relations}
 
@@ -390,91 +512,6 @@ network.
 \label{sensorjson}
 \end{listing}
 
-
-\section{Layered Architecture}
-
-Work is under way by multiple groups to adapt the TCP/IP Stack to be more
-suitable for low-power, resource-constrained devices~\cite{iotsurvey}. Though
-this is a reasonable proposition and would provide a suitable transport
-protocol for communication, it leaves open many questions that are important
-for secure and reliable communication over the open Internet. Even if the
-devices themselves speak IP (whether using WiFi, 6LoWPAN, etc.) there will
-still likely be a role for a bridge or gateway node that can handle encryption,
-authentication, discovery mechanisms, and other functionality necessary to
-communicate and interoperate with the larger Internet.
-
-One of the benefits of the layered gateway approach is that we can take
-advantage of existing HTTP Caching and Proxy infrastructure. It is a common
-pattern in modern web development to have application web server processes
-handling application logic, and to place a front-end HTTP server such as Nginx
-or Apache as a reverse proxy or gateway.  In this configuration, the proxy is
-responsible for handling SSL encryption, defending against DDOS attacks, and in
-general provides a front line of defense to the open Internet. The application
-server processes (e.g.  Node.js or Gunicorn) thus operate in a safer
-environment and focus on handling application logic.
-
-Figure \ref{chain_distributed} shows a possible configuration of clients,
-proxies, and sensors. Here there are a combination of traditional low-power
-sensors in a Wireless Sensor Network (WSN), as well as a set of sensors that
-can serve HTTP requests, but are assumed to be relatively resource-constrained
-i.e.  they are not equipped to handle large amounts of traffic, and don't
-support advanced features such as SSL. When one of the clients requests data
-(e.g. the most recent temperature reading) from one of the sensor nodes, it
-goes through a caching proxy. If the proxy does not have a recent response, it
-will pass the request to the sensor. The sensor will send the response with the
-data, along with a standard HTTP Cache-Control header. The sensor will most
-likely give a cache lifetime on the order of its sampling period. Subsequent
-requests from other clients for the same data will be handled directly by the
-Caching proxy, saving both power and bandwidth of the sensor. This is
-particularly valuable when there are many clients requesting the same data.
-
-The trade-off for this extra efficiency is additional latency between the time
-a physical property is measured and the time that it gets to the client.
-Because our system provides both a request/response and a streaming interface,
-we assume that clients seeking the lowest latency data will simply connect to
-the realtime stream.
-
-The presence or absence of a gateway has been used in Web of Things literature
-to divide direct from indirect integration~\cite{wotsurvey}. In direct
-integration, the devices themselves are capable of serving requests directly
-from clients. In indirect integration there is a gateway or bridge that serves
-the requests, and translates them to a protocol that the (presumably
-lower-powered) nodes can understand. The assumption is often that the main
-function of the gateway is to translate between HTTP and a lower-power protocol
-such as ZigBee, 6LoWPan, etc. An unexplored middle ground is for end devices to
-function as simple HTTP servers that are proxied behind more heavy-duty ones.
-For example, a gateway could handle SSL and authentication, but then forward
-requests to the simpler devices for handling application logic. This layered
-architecture  and allows the simpler devices to sit behind a protected firewall
-in a safe zone. By building our simpler servers on HTTP we can use
-industry-standard and field-tested front-end proxy servers instead of special
-purpose IoT gateways.
-
-The standard HTTP methods (\texttt{GET}, \texttt{POST}, etc.) have well-defined
-semantics~\cite{httpmethods}. For instance, a \texttt{GET} request should have
-no side effects in the server, and a \texttt{PUT} request should be idempotent
-(making the request more than once has the same effect as making it once i.e.
-the request can be safely repeated). Using these standard methods and adhering
-to the defined semantics allows intermediate servers to behave more
-intelligently and route traffic more efficiently. One notable example is the
-caching proxy. There exist many widely-used proxies such as
-Varnish\footnote{https://www.varnish-cache.org/},
-Nginx\footnote{http://nginx.org/}, and
-Squid\footnote{http://www.squid-cache.org/} that can take advantage of the HTTP
-method along with standardized cache lifetime HTTP headers to intercept the
-request and serve a cached response from a previous request. This reduces the
-load on the application server, which might otherwise have needed to access a
-database or do other expensive calculations to re-build the response. In the
-case of sensors the caching proxy could be a power-saving measure, as the proxy
-could handle client requests without communicating with the sensor.
-
-\begin{figure}
-    \centering
-    \input{chain_distributed.tex}
-    \caption{Layered Architecture}
-    \label{chain_distributed}
-\end{figure}
-
 \section{Bringing Poll and Push\\ Together}
 
 In ChainAPI we integrated request/response interactions with realtime push
@@ -492,7 +529,7 @@ for related data simply by providing a \texttt{ch:websocketStream} link
 relation. For example, in Listing \ref{sensorjson} the server is telling the
 client that there is a WebSocket stream for this sensor available at
 \texttt{ws://example.com/ws/sensor-274}. As new data from the sensor is
-available it will be streamed to all subscribed clients. Because there is a
+available it will be published to all subscribed clients. Because there is a
 natural hierarchy in our data (many devices in a Site, usually several sensors
 in each Device), when clients subscribe to a resource they get updates for all
 resources below them in the hierarchy.
@@ -519,8 +556,6 @@ stream. Clients that support the new stream type will be able to take advantage
 of it when the rel is available, and older clients will simply ignore the new
 capability.
 
-\pagebreak
-
 \section{Enabling Search}
 \label{search}
 
@@ -536,13 +571,13 @@ wanted~\cite{websearchengines}. With search engines came the advent of crawlers
 that would index the web and collect the metadata into the engine's database.
 
 As more sensors and sensor networks are added to the Web of Things, similar
-issues will arise. Our approach can serve as a substrate on which a similar
-ecosystem of crawlers can index the available data and metadata. Search engines
-have also been one of the spaces where semantic markup is beginning to be
-adopted and used,  as the engines use embedded semantic information in pages to
-improve their results.
+issues will arise. By building a network of interlinked sensor networks, our
+approach can serve as a substrate on which a similar ecosystem of crawlers can
+index the available data and metadata. Search engines have also been one of the
+spaces where semantic markup is beginning to be adopted and used, as the
+engines use embedded semantic information in pages to improve their results.
 
-\section{Naming}
+\section{Supporting Relation Ontologies}
 
 One of the central issues in the IoT is simply the issue of uniquely
 identifying objects in the system~\cite{iotsurvey}. RESTful design practices
@@ -556,8 +591,6 @@ between related resources and services.
 Additionally, HTTP has built-in mechanisms to handle renaming, as servers can
 respond with an HTTP Status 301 (Moved Permanently) to notify clients that the
 object can now be found at a new URI.
-
-\section{Supporting Relation Ontologies}
 
 An ontology is a formal description of objects, classes, and concepts in a
 domain, as well as the relations between them~\cite{gruber1993}. In the
@@ -578,11 +611,11 @@ of link relations to enable these types of use cases. In Listing
 expands (via the CURIE) to the URI \texttt{/rels/dataHistory}. A client that
 sees and understands this relation knows that it will link to a collection of
 data from the history of this resource. A user-facing client might open the
-link in a separate window that can graph the data. A M2M agent such as an
-indexing crawler might choose to ignore the link because it is only concerned
-with sensor metadata and not the actual measurements themselves. Perhaps it
-will link back to the source for the raw data, while storing the metadata in a
-more optimized index for the types of queries it will run.
+link in a separate window that can graph the data. A Machine-to-Machine (M2M)
+agent such as an indexing crawler might choose to ignore the link because it is
+only concerned with sensor metadata and not the actual measurements themselves.
+Perhaps it will link back to the source for the raw data, while storing the
+metadata in a more optimized index for the types of queries it will run.
 
 In addition to acting as a universally-unique identifier, the rel name is also
 a URI that can be dereferenced by the client to get more information on the
@@ -620,7 +653,7 @@ GitHub\footnote{https://github.com/ssfrr/chain-api}.
 \subsection{Resources}
 \label{api_resources}
 
-as a hypermedia web service, ChainAPI provides clients with a number of
+As a hypermedia web service, ChainAPI provides clients with a number of
 resources and describes relations between them in the form of hyperlinks.  The
 resource types we currently provide are:
 
@@ -632,6 +665,51 @@ resource types we currently provide are:
     \item[Sensor] A single metric that is measured, such as temperature or humidity.
     \item[SensorData] Raw data captured by the sensor.
 \end{description}
+
+\subsection{Libraries and Tools}
+
+Our current implementation of the ChainAPI server is written in Python. We use
+the Django\footnote{https://www.djangoproject.com/} web framework for the
+request/response API and database interactions. For managing the WebSocket
+connections, we use a separate process built on the
+Flask\footnote{http://flask.pocoo.org/} web framework. The two processes
+communicate with each other through a ZMQ\footnote{http://zeromq.org/} socket
+for event notification. We are currently using the
+PostgreSQL\footnote{http://www.postgresql.org/} relational database. Nginx acts
+as a reverse-proxy server to dispatch standard HTTP and also WebSocket
+connections to the application servers.
+
+It is currently only possible to create or modify resources (including
+\texttt{POST}ing sensor data) through the HTTP interface, but in the future clients
+will be able to use WebSockets to reduce latency and overhead. When a client
+posts new data, for example a sensor posting a new temperature measurement, the
+HTTP server stores the data in the database and also sends an event
+notification over ZMQ to the WebSocket server, which in turn notifies any
+subscribed clients. The URI provided to the client in the WebSocket links
+provides all the information the WebSocket server needs to decide what data
+should be sent to the client. For example, in the sensor resource in Listing
+\ref{sensorjson}, the WebSocket URI is \texttt{ws://example.com/ws/sensor-274},
+so when the client connects to the WebSocket server, it will send any events
+tagged \texttt{sensor-274}. This tagging mechanism is an implementation detail,
+but it demonstrates that when the clients treat link URIs as opaque, they can
+be used to pass data between server components without requiring the state to
+be maintained in the server, which is a core component of RESTful design.
+
+While are certainly a long way from Internet-scale, we have a substantially
+larger installation then most comparable research systems. As of October 24,
+2014 there are 487 devices in the system, which include 2230 separate sensors.
+We have collected over 239,000,000 sensor data measurements. These devices
+include custom hardware that communicates over 802.15.4, commercial thermostats
+on the MIT Media Lab's Building Management System, and the Soofa solar
+benches\footnote{http://www.soofa.co} deployed in Boston, which are
+\texttt{POST}ing directly to ChainAPI over a GSM modem.
+
+\begin{figure}
+    \centering
+    \input{chain_actual.tex}
+    \caption{ChainAPI Servers}
+    \label{chain_actual}
+\end{figure}
 
 \subsection{HTML Interface}
 
@@ -668,57 +746,18 @@ libraries. As new features and capabilities are added to the server, they
 automatically become available in the client interface with no client-side code
 changes.
 
-\subsection{Software Architecture}
-
-Our current implementation of the ChainAPI server is written in Python. We use
-the Django\footnote{https://www.djangoproject.com/} web framework for the
-request/response API and database interactions. For managing the WebSocket
-connections, we use a separate process built on the
-Flask\footnote{http://flask.pocoo.org/} web framework. The two processes
-communicate with each other through a ZMQ\footnote{http://zeromq.org/} socket
-for event notification. We are currently using the
-PostgreSQL\footnote{http://www.postgresql.org/} relational database. Nginx acts
-as a reverse-proxy server to dispatch standard HTTP and also WebSocket
-connections to the application servers.
-
-It is currently only possible to create or modify resources through the HTTP
-interface, but in the future clients will be able to use WebSockets to reduce
-latency and overhead. When a client posts new data, for example a sensor
-posting a new temperature measurement, the HTTP server stores the data in the
-database and also sends an event notification over ZMQ to the WebSocket server,
-which in turn notifies any subscribed clients. The URI provided to the client
-in the WebSocket links provides all the information the WebSocket server needs
-to decide what data should be sent to the client. For example, in the sensor
-resource in Listing \ref{sensorjson}, the WebSocket URI is
-\texttt{ws://example.com/ws/sensor-274}, so when the client connects to the
-WebSocket server, it will send any events tagged \texttt{sensor-274}. This
-tagging mechanism is an implementation detail, but it demonstrates that when
-the clients treat link URIs as opaque, they can be used to pass data between
-server components without requiring the state to be maintained in the server,
-which is a core component of RESTful design.
-
-While are certainly a long way from Internet-scale, we have a substantially
-larger installation then most comparable research systems. As of August 7, 2014
-there are 366 devices in the system, which include 1121 separate sensors. We
-have collected over 100,000,000 sensor data measurements.
-
-\begin{figure}
-    \centering
-    \input{chain_actual.tex}
-    \caption{ChainAPI Servers}
-    \label{chain_actual}
-\end{figure}
-
 \section{Case Study:\\Tidmarsh Living Observatory}
 
 The Tidmarsh Living Observatory project\footnote{http://tidmarshfarms.com/} is
 a sensor deployment at a former cranberry bog in southern Massachusetts that is
-currently undergoing a restoration to a natural wetland. There are currently 15
+currently undergoing a restoration to a natural wetland. There are currently 65
 sensors nodes deployed, each sensing temperature, humidity, barometric
-pressure, and ambient light. Each node is powered by 3 AA batteries, with an
-expected battery life of 2 years, sampling every 20 seconds. Approximately 100
-additional nodes will be installed in the coming months. Figure
-\ref{tidmarsh_arch} shows an overview of the Tidmarsh architecture.
+pressure, and ambient light. Two nodes are equipped with additional soil
+moisture probes, and one is measuring wind speed and direction. Each node is
+powered by 3 AA batteries, with an expected battery life of 2 years, sampling
+every 30 seconds. There are also several solar-powered nodes acting as
+repeaters for the mesh network. Figure \ref{tidmarsh_arch} shows an overview of
+the Tidmarsh architecture.
 
 \begin{figure}
     \centering
@@ -731,17 +770,16 @@ additional nodes will be installed in the coming months. Figure
 
 One of the goals of ChainAPI is to accommodate a wide variety of heterogeneous
 underlying sensor systems and provide easy integration. In the case of Tidmarsh
-there was an existing sensor installation that exposed the sensor data via
-ZMQ.The sensors communicate with a base station
-using Atmel's Lightweight Mesh protocol over 802.15.4. Nodes not within direct
-communication range of the base station can route messages through
-solar-powered router nodes, which are also collecting data. The base station
-serves as the TCP/IP Gateway, which receives the RF messages and sends them
-over WiFi to server via ZMQ. The message payloads are left in their binary
-format and they are received by the Binary to JSON translator, which parses the
-binary messages and generates JSON representations of the data. The Binary to
-JSON translator acts as a ZMQ server, and the JSON messages are sent to any
-connected clients.
+there was an existing sensor installation that exposed the sensor data via ZMQ.
+The sensors communicate with a base station using Atmel's Lightweight Mesh
+protocol over 802.15.4. Nodes not within direct communication range of the base
+station can route messages through solar-powered router nodes, which are also
+collecting data. The base station serves as the TCP/IP Gateway, which receives
+the RF messages and sends them over WiFi to server via ZMQ. The message
+payloads are left in their binary format and they are received by the Binary to
+JSON translator, which parses the binary messages and generates JSON
+representations of the data. The Binary to JSON translator acts as a ZMQ
+server, and the JSON messages are sent to any connected clients.
 
 \subsection{ChainAPI Representation}
 
@@ -777,8 +815,10 @@ We developed an interactive 3D client built on the Unity3D game
 engine\footnote{http://unity3d.com/} to explore and experience the data from
 the sensor network. As with the Tidmarsh bridge, the client begins by
 requesting a summary of the site, which includes all devices and sensors at
-that site. Similar to the bridge, this client builds a hash to map incoming
-data, but now in the opposite direction. New data that comes in from the
+that site. The summary also includes geographic location for each device, which
+the client uses to place each sensor in the 3D environment. Similar to the
+bridge, this client builds a hash to map incoming data, but now in the opposite
+direction (mapping URIs to in-game objects). New data that comes in from the
 WebSocket subscription will have a link to the containing sensor, so the client
 needs to quickly map that URI into an in-memory object representing the sensor.
 As the client parses the summary of devices and sensors at the site, it builds
@@ -840,7 +880,7 @@ missing data. Sampling and interpolation questions extend into space as well,
 and our work provides a framework for virtual sensors~\cite{sarkar2014no} to be
 created and linked together with the raw data.
 
-As discussed in Section \ref{search}, The web provides a successful model to
+As discussed in Section \ref{search}, the Web provides a successful model to
 handle massive decentralized growth in the form of search engines. A collection
 of hyperlinked sensor data forms a substrate for a more sophisticated ecosystem
 of crawlers, aggregators, portals, etc. that can be extremely loosely-coupled
