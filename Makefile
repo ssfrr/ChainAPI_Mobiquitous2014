@@ -6,6 +6,9 @@ PAGECOUNT=$(shell pdfinfo $(DOC_NAME).pdf | grep Pages: | awk '{print $$2}')
 
 default: $(DOC_NAME).pdf
 
+clean:
+	rm -f $(DOC_NAME).aux $(DOC_NAME).log $(DOC_NAME).pdf $(DOC_NAME).out $(DOC_NAME).blg $(DOC_NAME).bbl errors.err vc.tex
+
 watch:
 	while true; do make --no-print-directory; make --no-print-directory stats; sleep 2; done
 

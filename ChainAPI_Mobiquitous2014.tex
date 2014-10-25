@@ -28,8 +28,9 @@
 
 \documentclass{acm_proc_article-sp}
 % these seem necessary to get 8.5x11 (letter) page size working in pdflatex
-\setlength{\pdfpagewidth}{8.5in}
-\setlength{\pdfpageheight}{11in}
+% comment them out for A4
+%\setlength{\pdfpagewidth}{8.5in}
+%\setlength{\pdfpageheight}{11in}
 \usepackage[export]{adjustbox}
 \usepackage[bookmarks, pdfborderstyle={/S/U/W 0}]{hyperref}
 \usepackage{minted}
@@ -227,12 +228,12 @@ that had gone into the World Wide Web into an architectural framework he called
 Representational State Transfer, or REST. He lists the main requirements that
 drove the design of the World Wide Web:
 
-\begin{tightitemize}
+\begin{tightenumerate}
     \item Low barrier to entry
     \item Extensibility
     \item Distributed hypermedia
     \item Internet-scale
-\end{tightitemize}
+\end{tightenumerate}
 
 The Internet of Things certainly must be extensible and Internet-scale. This
 work focuses on exploring the benefits of lowering barriers to entry and
@@ -242,43 +243,110 @@ between design complexity and the expressive power and generality of a system.
 The World Wide Web gives a compelling model of a system that has
 proved itself to be both accessible (driving wide and rapid adoption) and
 extensible. Guinard, Trifa, and Wilde give a good introduction to the
-application of RESTful design to the Web of Things~\cite{guinard2010}.
+application of RESTful design to the Web of Things~\cite{guinard2010}. In
+particular they list five constraints of REST architectures:
+
+\begin{tightenumerate}
+    \item Resource Identification
+    \item Uniform Interface
+    \item Self-Describing Messages
+    \item Hypermedia Driving Application State
+    \item Stateless Interactions
+\end{tightenumerate}
+
+They go on to describe how these constraints are well suited to IoT
+applications. Building on that work we developed seven design principles to guide
+our system design, architecture, and development.
+
+\begin{tightenumerate}
+    \item Assume a plurality of low-level device protocols and abstract them
+        from clients
+    \item Support a layered architecture allowing intermediaries to handle
+        services such as caching, authentication, and encryption
+    \item Use hyperlinks to present resource relations and client affordances
+    \item Support interoperability via shared vocabularies identified with URIs
+    \item Developers should be able to build clients without specialized
+        tooling or libraries, using only familiar standards (HTTP, JSON, and
+        WebSockets)
+    \item Provide semantic relationships without requiring full Semantic Web
+        buy-in from developers
+    \item Provide a mechanism to subscribe to push updates
+\end{tightenumerate}
 
 \section{Related Work}
 
-\begin{itemize}
-    \item OpenIoT
-    \item AMON
-    \item SensorML
-    \item IoTDB.org
-    \item Microsoft Research Lab of Things
-    \item data.sparkfun.com
-    \item Sensorpedia
-    \item DataONE
-    \item Spitfire
-    \item OGC Sensor Web Enablement (SWE)
-    \item Semantic Sensor Net Ontology (from W3C)
-    \item Octoblu / SkyNet
-    \item AllJoyn
-    \item CoAP
-    \item MQTT
-    \item XMPP
-    \item UPnP+
-\end{itemize}
+There are a wide variety of projects in the academic and private sectors, and
+in fact the abundance of fragmented systems and protocols is often cited as one
+of the main challenges in the IoT space. To help make sense of this landscape
+we will categorize some of these related projects into 3 groups: data
+interchange formats, protocols, and software and platforms. In this
+categorization we consider data interchange formats to be portable
+specifications intended to package data for sharing between heterogeneous
+systems. Protocols specify more complex interactions between entities, such as
+acknowledgements, authentication, and handshaking. A protocol may specify the
+data interchange format, or may leave the payload format open for arbitrary
+data. Software and platforms are specific instantiations and implementations in
+hardware and software.
 
-\section{Design Principles}
+\subsection{Data Interchange Formats} On the Web, JSON and XML are both
+extremely common and often used as a basis for more detailed formats. This
+paper will not contribute further to the JSON/XML discussion, except to point
+to the well-reasoned description by Lanthaler\cite{semaphobia} which aligns
+with the authors preference for JSON.
 
-\begin{itemize}
-    \item Assume a plurality of low-level device protocols and abstract them
-        from clients
-    \item Support a layered architecture built on HTTP
-    \item Use hyperlinks to present resource relations and client affordances
-    \item Support interoperability via shared vocabularies identified with URIs
-    \item Developers should be able to build clients without tooling or
-        libraries, using only familiar standards (HTTP, JSON, and WebSockets)
-    \item Support semantic relationships without requiring full Semantic Web
-        buy-in from developers
-\end{itemize}
+The Sensor Modeling Language (SensorML) from the Open Geospatial Consortium
+(OGC) is a data model with an XML representation that can describe sensor
+metadata. Though widely used and referenced in the literature, SensorML is
+burdened by interoperability with general upper ontologies and does not seem
+suitable for lightweight web services.
+
+While not sensor-specific, the Hypermedia Application Language (HAL) provides a
+data model with both XML and JSON formats that supports hypermedia i.e. links.
+HAL has a focus on simplicity, but has the ability to use URIs as link
+relations, which enables a global vocabulary that can be shared between
+applications. JSON-LD is another promising contender in the JSON hypermedia
+space, and has recenly been adopted by Google for embedding semantic data into
+emails and search results\cite{sporny_google}. JSON-LD can also be mapped to
+RDF, for interoperability with existing Semantic Web tools.
+
+\subsection{Protocols}
+Much of the work in IoT research and development has been at the protocol
+level. CoAP\cite{coap} and MQTT\cite{mqtt} both target protocols that can be
+used end-to-end from embedded devices to clients. CoAP is inspired by REST and
+HTTP but designed from scratch by the IETF\cite{californium}, while MQTT is
+modeled on a publish/subscribe architecture. XMPP began as a chat protocol, but
+because it supports extensions it has been used for a wide variety of use
+cases, including IoT. Any of these three would require adapting into web
+standard protocols such as HTTP, so while they could be plugged into a system
+meeting our design principles, we will consider them out of scope for this
+work. AllJoyn is a large and sophisticated IoT solution started by Qualcomm
+that is now under the AllSeen Alliance. AllJoyn does not fit into our design
+principles of using existing protocols when possible and avoiding the need for
+extra tooling.
+
+\subsection{Software and Platforms}
+There are many commercial and academic offerings to manage sensor data. One of
+the most well-known is Xively (formally Cosm, formally Patchube). Xively
+supports access via REST, unix sockets, WebSockets, and MQTT. However, it is a
+closed and monolithic system. Their integration of request/response API and
+push API was influential in our design, though they are not leveraging
+hypermedia, and rely on out-of-band URLs hardcoded into the client. In 2014
+Sparkfun announced data.sparkfun.com, which is a very simple sensor feed
+publishing platform. It is open-source, but the lack of a mechanism to link
+installations together prevents it from becoming a true distributed system.
+Also, While it is very simple and accessible to web-savvy developers, it
+doesn't provide the necessary tools to build more complex systems. Microsoft
+Research has introduced HomeOS\cite{homeos}, which abstracts over a set of
+existing home-automation protocols to provide a PC-like interface, but it is
+very home-focused and also does not provide a web-centric API to client
+developers. SPITFIRE\cite{spitfire} is a very promising step towards the
+Semantic Web of Things, and motivates the benefits of semantic sensor data well.
+However, they do not provide a hypermedia API and instead rely on the use
+of Semantic Web tools such as SPARQL. OpenIOT\cite{openiot} is a similar
+service based on Semantic Web technologies and conforming to standards such as
+the W3C Semantic Sensor Networks (SSN) specifications. Again however, the
+system is large and complex, and relies on tools and specialized software to
+interact with the service.
 
 \section{Using Existing Standards}
 
