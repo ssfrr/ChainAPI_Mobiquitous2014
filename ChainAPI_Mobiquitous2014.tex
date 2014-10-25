@@ -151,15 +151,15 @@ these disparate sources together. Infrastructure for the Internet of Things
 (including not just consumer products but sensors and actuators of all kinds)
 is becoming more commonplace, but we need an application layer to enable
 interoperability and create a \emph{Web} of Things. Here we introduce a
-pragmatic approach to the Web of Things, integrating HTTP request/response
-interactions with realtime streaming using HTML5 WebSockets.  We will discuss
-how our approach enables client/server interactions that are both evolvable by
-the server and discoverable by the client. Rather than attempt to define yet
-another competing standard, we incorporate a collection of complementary
-standards already in use. We will also describe our implementation of these
-concepts in ChainAPI, a sensor data server in use by a variety of projects
-within our research group.  We will describe one of several end-to-end
-applications as a successful case study.
+pragmatic, hypermedia approach to the Web of Things, integrating HTTP
+request/response interactions with realtime streaming using HTML5 WebSockets.
+We will discuss how our approach enables client/server interactions that are
+both evolvable by the server and discoverable by the client. Rather than
+attempt to define yet another competing standard, we incorporate a collection
+of complementary standards already in use. We will also describe our
+implementation of these concepts in ChainAPI, a sensor data server in use by a
+variety of projects within our research group. We will describe one of several
+end-to-end applications as a successful case study.
 \end{abstract}
 
 % % A category with the (minimum) three required fields
@@ -221,10 +221,10 @@ and also which features are necessary to cover real-world use cases.
 
 \section{Hypermedia Web Services}
 
-One of the most influential works in Hypermedia Web Services is Roy Fielding's
-PhD dissertation ``Architectural Styles and the Design of Network-based
-Software Architectures''~\cite{fielding}. Fielding codified much of the design
-that had gone into the World Wide Web into an architectural framework he called
+The seminal work in Hypermedia Web Services is Roy Fielding's PhD dissertation
+``Architectural Styles and the Design of Network-based Software
+Architectures''~\cite{fielding}. Fielding codified much of the design that had
+gone into the World Wide Web into an architectural framework he called
 Representational State Transfer, or REST. He lists the main requirements that
 drove the design of the World Wide Web:
 
@@ -255,8 +255,9 @@ particular they list five constraints of REST architectures:
 \end{tightenumerate}
 
 They go on to describe how these constraints are well suited to IoT
-applications. Building on that work we developed seven design principles to guide
-our system design, architecture, and development.
+applications. Building on that work and our previous experience we developed
+seven design principles to guide our system design, architecture, and
+implementation.
 
 \begin{tightenumerate}
     \item Assume a plurality of low-level device protocols and abstract them
@@ -270,7 +271,7 @@ our system design, architecture, and development.
         WebSockets)
     \item Provide semantic relationships without requiring full Semantic Web
         buy-in from developers
-    \item Provide a mechanism to subscribe to push updates
+    \item Provide a mechanism for clients to subscribe to push updates
 \end{tightenumerate}
 
 \section{Related Work}
@@ -285,13 +286,13 @@ specifications intended to package data for sharing between heterogeneous
 systems. Protocols specify more complex interactions between entities, such as
 acknowledgements, authentication, and handshaking. A protocol may specify the
 data interchange format, or may leave the payload format open for arbitrary
-data. Software and platforms are specific instantiations and implementations in
-hardware and software.
+data (as HTTP does). Software and platforms are specific instantiations and
+implementations in hardware or software.
 
 \subsection{Data Interchange Formats} On the Web, JSON and XML are both
 extremely common and often used as a basis for more detailed formats. This
 paper will not contribute further to the JSON/XML discussion, except to point
-to the well-reasoned description by Lanthaler\cite{semaphobia} which aligns
+to the well-reasoned description by Lanthaler~\cite{semaphobia} which aligns
 with the authors preference for JSON.
 
 The Sensor Modeling Language (SensorML) from the Open Geospatial Consortium
@@ -300,20 +301,23 @@ metadata. Though widely used and referenced in the literature, SensorML is
 burdened by interoperability with general upper ontologies and does not seem
 suitable for lightweight web services.
 
-While not sensor-specific, the Hypermedia Application Language (HAL) provides a
-data model with both XML and JSON formats that supports hypermedia i.e. links.
-HAL has a focus on simplicity, but has the ability to use URIs as link
-relations, which enables a global vocabulary that can be shared between
-applications. JSON-LD is another promising contender in the JSON hypermedia
-space, and has recenly been adopted by Google for embedding semantic data into
-emails and search results\cite{sporny_google}. JSON-LD can also be mapped to
-RDF, for interoperability with existing Semantic Web tools.
+While not sensor-specific, the Hypermedia Application Language
+(HAL)~\cite{json-hal-draft} provides a data model with both XML and JSON
+formats that supports hypermedia i.e. links. HAL has a focus on simplicity,
+but has the ability to use URIs as link relations, which enables a global
+vocabulary that can be shared between applications. A downside to HAL is that
+relation URIs can only be used for link relations, not resource attributes.
+JSON-LD~\cite{json-ld} is another promising contender in the JSON hypermedia
+space, and unifies the descriptions of links and attributes. It has recenly
+been adopted by Google for embedding semantic data into emails and search
+results~\cite{sporny_google}. JSON-LD can also be mapped to RDF, for
+interoperability with existing Semantic Web tools.
 
 \subsection{Protocols}
 Much of the work in IoT research and development has been at the protocol
-level. CoAP\cite{coap} and MQTT\cite{mqtt} both target protocols that can be
+level. CoAP~\cite{coap} and MQTT~\cite{mqtt} both target protocols that can be
 used end-to-end from embedded devices to clients. CoAP is inspired by REST and
-HTTP but designed from scratch by the IETF\cite{californium}, while MQTT is
+HTTP but designed from scratch by the IETF~\cite{californium}, while MQTT is
 modeled on a publish/subscribe architecture. XMPP began as a chat protocol, but
 because it supports extensions it has been used for a wide variety of use
 cases, including IoT. Any of these three would require adapting into web
@@ -330,34 +334,39 @@ the most well-known is Xively (formally Cosm, formally Patchube). Xively
 supports access via REST, unix sockets, WebSockets, and MQTT. However, it is a
 closed and monolithic system. Their integration of request/response API and
 push API was influential in our design, though they are not leveraging
-hypermedia, and rely on out-of-band URLs hardcoded into the client. In 2014
-Sparkfun announced data.sparkfun.com, which is a very simple sensor feed
-publishing platform. It is open-source, but the lack of a mechanism to link
-installations together prevents it from becoming a true distributed system.
-Also, While it is very simple and accessible to web-savvy developers, it
-doesn't provide the necessary tools to build more complex systems. Microsoft
-Research has introduced HomeOS\cite{homeos}, which abstracts over a set of
-existing home-automation protocols to provide a PC-like interface, but it is
-very home-focused and also does not provide a web-centric API to client
-developers. SPITFIRE\cite{spitfire} is a very promising step towards the
-Semantic Web of Things, and motivates the benefits of semantic sensor data well.
-However, they do not provide a hypermedia API and instead rely on the use
-of Semantic Web tools such as SPARQL. OpenIOT\cite{openiot} is a similar
-service based on Semantic Web technologies and conforming to standards such as
-the W3C Semantic Sensor Networks (SSN) specifications. Again however, the
-system is large and complex, and relies on tools and specialized software to
-interact with the service.
+hypermedia, and rely on out-of-band URLs hardcoded into the client.
+
+In 2014 Sparkfun announced data.sparkfun.com, which is a very simple sensor
+feed publishing platform. It is open-source, but the lack of a mechanism to
+link installations together prevents it from becoming a true distributed
+system.  Also, While it is very simple and accessible to web-savvy developers,
+it doesn't provide the necessary tools to build more complex systems.
+
+Microsoft Research has introduced HomeOS~\cite{homeos}, which abstracts over a
+set of existing home-automation protocols to provide a PC-like interface, but
+it is very home-focused and also does not provide a web-centric API to client
+developers.
+
+SPITFIRE~\cite{spitfire} is a very promising step towards the Semantic Web of
+Things, and motivates the benefits of semantic sensor data well.  However, they
+do not provide a hypermedia API and instead rely on the use of Semantic Web
+tools such as SPARQL. OpenIoT~\cite{openiot} is a similar service based on
+Semantic Web technologies and conforming to standards such as the W3C Semantic
+Sensor Networks (SSN) specifications. Again however, the system is large and
+complex, and relies on tools and specialized software to interact with the
+service.
 
 \section{Using Existing Standards}
 
 Wherever possible we have relied on existing standards and protocols rather
 than reinventing our own. For instance, to support hypermedia in our responses
-we are using the Hypertext Application Language~\cite{json-hal-draft}, which
-provides a standardized data model for hyperlinks. HAL has a large number of
-client libraries and was recently adopted by Amazon for their AppStream API.
-HAL can be rendered in JSON with a mediatype of \texttt{application/hal+json}
-or XML (using \mbox{\texttt{application/hal+xml}}). In this case we have chosen to focus on
-the JSON variant. We use the IANA-standardized link relations
+we are using HAL. HAL has a large number of client libraries and was recently
+adopted by Amazon for their AppStream API.  HAL can be rendered in JSON with a
+mediatype of \texttt{application/hal+json} or XML (using
+\mbox{\texttt{application/hal+xml}}). In this case we have chosen to focus on
+the JSON variant. JSON-LD would also be a suitable representation, and they can
+co-exist using the HTTP Accept header to let the client tell the server what
+representation it wants. We use the IANA-standardized link relations
 \texttt{edit-form} and \texttt{create-form} to indicate link relations that can
 be used for editing and creating resources, and
 JSON-Schema~\cite{json-schema-draft} for representing the expected format. For
@@ -391,6 +400,22 @@ directly to IoT applications, where lightweight devices can serve HTTP or
 function as gateways to Wireless Sensor Networks (WSNs) from behind
 heavier-duty proxies.
 
+The presence or absence of a gateway has been used in Web of Things literature
+to divide direct from indirect integration~\cite{wotsurvey}. In direct
+integration, the devices themselves are capable of serving requests directly
+from clients. In indirect integration there is a gateway or bridge that serves
+the requests, and translates them to a protocol that the (presumably
+lower-powered) nodes can understand. The assumption is often that the main
+function of the gateway is to translate between HTTP and a lower-power protocol
+such as ZigBee, 6LoWPan, etc. An unexplored middle ground is for end devices to
+function as simple HTTP servers that are proxied behind more heavy-duty ones.
+For example, a gateway could handle SSL and authentication, but then forward
+requests to the simpler devices for handling application logic. This layered
+architecture  and allows the simpler devices to sit behind a protected firewall
+in a safe zone. By building our simpler servers on HTTP we can use
+industry-standard and field-tested front-end proxy servers instead of special
+purpose IoT gateways.
+
 Figure \ref{chain_distributed} shows a possible configuration of clients,
 proxies, and sensors. Here there are a combination of traditional low-power
 sensors in a WSN, as well as a set of sensors that
@@ -412,22 +437,6 @@ a physical property is measured and the time that it gets to the client.
 Because our system provides both a request/response and a streaming interface,
 we assume that clients seeking the lowest latency data will simply connect to
 the realtime stream.
-
-The presence or absence of a gateway has been used in Web of Things literature
-to divide direct from indirect integration~\cite{wotsurvey}. In direct
-integration, the devices themselves are capable of serving requests directly
-from clients. In indirect integration there is a gateway or bridge that serves
-the requests, and translates them to a protocol that the (presumably
-lower-powered) nodes can understand. The assumption is often that the main
-function of the gateway is to translate between HTTP and a lower-power protocol
-such as ZigBee, 6LoWPan, etc. An unexplored middle ground is for end devices to
-function as simple HTTP servers that are proxied behind more heavy-duty ones.
-For example, a gateway could handle SSL and authentication, but then forward
-requests to the simpler devices for handling application logic. This layered
-architecture  and allows the simpler devices to sit behind a protected firewall
-in a safe zone. By building our simpler servers on HTTP we can use
-industry-standard and field-tested front-end proxy servers instead of special
-purpose IoT gateways.
 
 The standard HTTP methods (\texttt{GET}, \texttt{POST}, etc.) have well-defined
 semantics~\cite{httpmethods}. For instance, a \texttt{GET} request should have
