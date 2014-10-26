@@ -1,6 +1,6 @@
 DOC_NAME=ChainAPI_Mobiquitous2014
 DRAFT_NAME=$(DOC_NAME)_draft
-FIGURES=tidmarsh_arch.tex hyperlinks.tex chain_distributed.tex chain_actual.tex
+FIGURES=tidmarsh_arch.tex hyperlinks.tex chain_distributed.tex chain_actual.tex tidmarsh_screenshot.png
 WORDCOUNT=$(shell pdftotext $(DOC_NAME).pdf - | wc | awk '{print $$2}')
 PAGECOUNT=$(shell pdfinfo $(DOC_NAME).pdf | grep Pages: | awk '{print $$2}')
 
