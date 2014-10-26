@@ -177,16 +177,16 @@ It is becoming apparent that in addition to a transport layer that enables the
 Internet of Things, it is important to develop an application layer to provide
 wide-spread interoperability and a consistent interface to Internet-connected
 devices. While there are many efforts to develop new standards and
-protocols such as Alljoyn\footnote{https://www.alljoyn.org/} and
+protocols such as AllJoyn\footnote{https://www.alljoyn.org/} and
 MQTT\footnote{http://mqtt.org/}, other projects~\cite{guinard2010} seek to
-use existing application-level web standards such as HTTP to provide an
+use existing application-level Web standards such as HTTP to provide an
 interface that is more familiar to developers, and also that can take advantage
 of tooling and infrastructure already in place for the World Wide Web.
 These efforts are often dubbed the Web of Things, which reflects the
-relationships to existing web standards and also the way in which the World
+relationships to existing Web standards and also the way in which the World
 Wide Web is built on top of the Internet.
 
-We can see some of the potential for web-accessible sensor data in the growth
+We can see some of the potential for Web-accessible sensor data in the growth
 of services like Xively\footnote{https://xively.com/}. However, we believe that
 the Web of Things should, like the Internet itself, be open and decentralized.
 Enabling interoperability between millions of data providers and consumers
@@ -211,7 +211,7 @@ sensor data lowers the barriers to entry, allowing developers to build
 sophisticated applications without deep knowledge of the underlying sensor
 architecture, enabling smarter, more efficient IoT systems~\cite{aldrich2013}.
 
-To address these issues we have developed ChainAPI, a set of web service design
+To address these issues we have developed ChainAPI, a set of Web service design
 principles for the Web of Things. ChainAPI services interoperate with existing
 infrastructure, and also allow developers to take advantage of semantic
 relations and formal ontologies as they become useful, rather than forcing the
@@ -278,16 +278,15 @@ implementation.
 
 There are a wide variety of projects in the academic and private sectors, and
 in fact the abundance of fragmented systems and protocols is often cited as one
-of the main challenges in the IoT space. To help make sense of this landscape
-we will categorize some of these related projects into 3 groups: data
-interchange formats, protocols, and software and platforms. In this
-categorization we consider data interchange formats to be portable
-specifications intended to package data for sharing between heterogeneous
-systems. Protocols specify more complex interactions between entities, such as
-acknowledgements, authentication, and handshaking. A protocol may specify the
-data interchange format, or may leave the payload format open for arbitrary
-data (as HTTP does). Software and platforms are specific instantiations and
-implementations in hardware or software.
+of the main challenges in IoT. To help make sense of this landscape we will
+categorize some of these related projects into 3 groups: data interchange
+formats, protocols, and platforms. In this categorization we consider data
+interchange formats to be portable specifications intended to package data for
+sharing between heterogeneous systems. Protocols specify more complex
+interactions between entities, such as acknowledgments, authentication, and
+handshaking. A protocol may specify the data interchange format, or may leave
+the payload format open for arbitrary data (as HTTP does). Platforms are
+specific instantiations and implementations in hardware or software.
 
 \subsection{Data Interchange Formats} On the Web, JSON and XML are both
 extremely common and often used as a basis for more detailed formats. This
@@ -308,7 +307,7 @@ but has the ability to use URIs as link relations, which enables a global
 vocabulary that can be shared between applications. A downside to HAL is that
 relation URIs can only be used for link relations, not resource attributes.
 JSON-LD~\cite{json-ld} is another promising contender in the JSON hypermedia
-space, and unifies the descriptions of links and attributes. It has recenly
+space, and unifies the descriptions of links and attributes. It has recently
 been adopted by Google for embedding semantic data into emails and search
 results~\cite{sporny_google}. JSON-LD can also be mapped to RDF, for
 interoperability with existing Semantic Web tools.
@@ -320,7 +319,7 @@ used end-to-end from embedded devices to clients. CoAP is inspired by REST and
 HTTP but designed from scratch by the IETF~\cite{californium}, while MQTT is
 modeled on a publish/subscribe architecture. XMPP began as a chat protocol, but
 because it supports extensions it has been used for a wide variety of use
-cases, including IoT. Any of these three would require adapting into web
+cases, including IoT. Any of these three would require adapting into Web
 standard protocols such as HTTP, so while they could be plugged into a system
 meeting our design principles, we will consider them out of scope for this
 work. AllJoyn is a large and sophisticated IoT solution started by Qualcomm
@@ -328,15 +327,15 @@ that is now under the AllSeen Alliance. AllJoyn does not fit into our design
 principles of using existing protocols when possible and avoiding the need for
 extra tooling.
 
-\subsection{Software and Platforms}
+\subsection{Platforms}
 There are many commercial and academic offerings to manage sensor data. One of
 the most well-known is Xively (formally Cosm, formally Patchube). Xively
-supports access via REST, unix sockets, WebSockets, and MQTT. However, it is a
+supports access via REST, Unix sockets, WebSockets, and MQTT. However, it is a
 closed and monolithic system. Their integration of request/response API and
 push API was influential in our design, though they are not leveraging
-hypermedia, and rely on out-of-band URLs hardcoded into the client.
+hypermedia, and rely on out-of-band URLs hard-coded into the client.
 
-In 2014 Sparkfun announced data.sparkfun.com, which is a very simple sensor
+In 2014 SparkFun announced data.sparkfun.com, which is a very simple sensor
 feed publishing platform. It is open-source, but the lack of a mechanism to
 link installations together prevents it from becoming a true distributed
 system.  Also, While it is very simple and accessible to web-savvy developers,
@@ -362,7 +361,7 @@ Wherever possible we have relied on existing standards and protocols rather
 than reinventing our own. For instance, to support hypermedia in our responses
 we are using HAL. HAL has a large number of client libraries and was recently
 adopted by Amazon for their AppStream API.  HAL can be rendered in JSON with a
-mediatype of \texttt{application/hal+json} or XML (using
+media type of \texttt{application/hal+json} or XML (using
 \mbox{\texttt{application/hal+xml}}). In this case we have chosen to focus on
 the JSON variant. JSON-LD would also be a suitable representation, and they can
 co-exist using the HTTP Accept header to let the client tell the server what
@@ -745,8 +744,9 @@ resource types we currently provide are:
 
 \subsection{Libraries and Tools}
 
-Our current implementation of the ChainAPI server is written in Python. We use
-the Django\footnote{https://www.djangoproject.com/} web framework for the
+Our current implementation of the ChainAPI server is written in Python, and
+diagrammed in Figure \ref{chain_actual}. We use the
+Django\footnote{https://www.djangoproject.com/} web framework for the
 request/response API and database interactions. For managing the WebSocket
 connections, we use a separate process built on the
 Flask\footnote{http://flask.pocoo.org/} web framework. The two processes
@@ -784,7 +784,7 @@ benches\footnote{http://www.soofa.co} deployed in Boston, which are
 \begin{figure}
     \centering
     \input{chain_actual.tex}
-    \caption{ChainAPI Servers}
+    \caption{ChainAPI Server}
     \label{chain_actual}
 \end{figure}
 
@@ -799,7 +799,7 @@ benches\footnote{http://www.soofa.co} deployed in Boston, which are
 
 To assist developers building applications on top of ChainAPI, we have
 developed a human-facing interface\footnote{http://chain-api.media.mit.edu/}
-with HTML, CSS, and Javascript that can be viewed through a standard web
+with HTML, CSS, and JavaScript that can be viewed through a standard web
 browser, as seen in Figure \ref{chain_explorer}.  Through this interface
 developers can familiarize themselves with the ChainAPI interface before they
 start their client application, or to evaluate ChainAPI for their use case.

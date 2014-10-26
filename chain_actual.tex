@@ -38,8 +38,8 @@
 \draw [dashed, >=, opacity=0.4] (0.5, 1) node[above right, opacity=1] {Local} node[below right, opacity=1] {External} -- (7.95, 1);
 
 \node (nginx) [nginx]  at (4.75, 1) {NGINX};
-\node (django) [appserver, above=of nginx, xshift=-10mm, yshift=10mm] {Django Server};
-\node (flask) [appserver, above=of nginx, xshift=20mm, yshift=10mm] {Flask Server};
+\node (django) [appserver, above=of nginx, xshift=-10mm, yshift=10mm] {Django Daemon};
+\node (flask) [appserver, above=of nginx, xshift=20mm, yshift=10mm] {Flask Daemon};
 \node [db, left of=django, xshift=-15mm] (db) {Postgres};
 
 \draw (nginx) -- node[left, text width=14mm] {HTTP Requests} (django);
